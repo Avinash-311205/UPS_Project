@@ -61,18 +61,35 @@ export async function authenticateMockUser(identifier: string, password: string)
   return user
 }
 
-export function saveMockSession(user: AuthUser): void {
-  window.sessionStorage.setItem(SESSION_KEY, user.id)
+export function saveMockSession(user: AuthUser, token?: string): void {
+  window.sessionStorage.setItem(SESSION_KEY, JSON.stringify(user))
+  if (token) {
+    window.sessionStorage.setItem('resiliencex-auth-token', token)
+  }
 }
 
 export function restoreMockSession(): AuthUser | null {
-  const userId = window.sessionStorage.getItem(SESSION_KEY)
-  const account = demoAccounts.find((candidate) => candidate.id === userId)
-  if (!account) return null
-  const { password: _password, ...user } = account
-  return user
+  const stored = window.sessionStorage.getItem(SESSION_KEY)
+  if (!stored) return null
+
+  try {
+    const parsed = JSON.parse(stored)
+    if (parsed && typeof parsed === 'object' && parsed.email && parsed.role) {
+      return parsed as AuthUser
+    }
+  } catch {
+    // If it was stored as a raw ID string in a previous session
+    const account = demoAccounts.find((candidate) => candidate.id === stored)
+    if (account) {
+      const { password: _password, ...user } = account
+      return user
+    }
+  }
+
+  return null
 }
 
 export function clearMockSession(): void {
   window.sessionStorage.removeItem(SESSION_KEY)
+  window.sessionStorage.removeItem('resiliencex-auth-token')
 }

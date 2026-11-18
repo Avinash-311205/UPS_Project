@@ -3,27 +3,39 @@ import { demoAccounts, roleLabels } from '../auth/mockAuth'
 import Icon from '../components/Icon'
 
 export default function LoginPage({
+  isRegister,
+  setIsRegister,
+  username,
+  setUsername,
   email,
   password,
   showPassword,
   isLoading,
   error,
+  successMessage,
   setEmail,
   setPassword,
   setShowPassword,
   setError,
+  setSuccessMessage,
   onSubmit,
   onSelectDemo,
 }: {
+  isRegister: boolean
+  setIsRegister: (value: boolean) => void
+  username: string
+  setUsername: (value: string) => void
   email: string
   password: string
   showPassword: boolean
   isLoading: boolean
   error: string
+  successMessage?: string
   setEmail: (value: string) => void
   setPassword: (value: string) => void
   setShowPassword: (value: boolean) => void
   setError: (value: string) => void
+  setSuccessMessage?: (value: string) => void
   onSubmit: (event: React.FormEvent<HTMLFormElement>) => void
   onSelectDemo: (account: (typeof demoAccounts)[number]) => void
 }) {
@@ -87,24 +99,97 @@ export default function LoginPage({
 
       <main className="auth-main">
         <section className="login-card">
+          <div className="auth-mode-switch">
+            <button
+              type="button"
+              className={`auth-mode-tab ${!isRegister ? 'active' : ''}`}
+              onClick={() => {
+                setIsRegister(false)
+                setError('')
+                setSuccessMessage?.('')
+              }}
+            >
+              Sign In
+            </button>
+            <button
+              type="button"
+              className={`auth-mode-tab ${isRegister ? 'active' : ''}`}
+              onClick={() => {
+                setIsRegister(true)
+                setError('')
+                setSuccessMessage?.('')
+              }}
+            >
+              Create Account
+            </button>
+          </div>
+
           <div className="login-heading">
             <span className="card-kicker">SECURE WORKSPACE</span>
-            <h2>Welcome back</h2>
-            <p>Sign in with your company account to continue.</p>
+            <h2>{isRegister ? 'Create account' : 'Welcome back'}</h2>
+            <p>{isRegister ? 'Register your account to access the logistics workspace.' : 'Sign in with your company account to continue.'}</p>
           </div>
+
           <form className="login-form" onSubmit={onSubmit}>
-            <label htmlFor="login-identifier">Employee ID or company email</label>
-            <input id="login-identifier" autoComplete="username" value={email} onChange={(event) => setEmail(event.target.value)} placeholder="RX-1042 or name@company.com" required />
+            {isRegister && (
+              <>
+                <label htmlFor="register-username">Username</label>
+                <input
+                  id="register-username"
+                  autoComplete="username"
+                  maxLength={10}
+                  value={username}
+                  onChange={(event) => setUsername(event.target.value)}
+                  placeholder="e.g. alexm (max 10 chars)"
+                  required
+                />
+                <span className="field-hint">Maximum 10 characters</span>
+              </>
+            )}
+
+            <label htmlFor="login-identifier">{isRegister ? 'Company email' : 'Employee ID or company email'}</label>
+            <input
+              id="login-identifier"
+              type={isRegister ? 'email' : 'text'}
+              autoComplete={isRegister ? 'email' : 'username'}
+              value={email}
+              onChange={(event) => setEmail(event.target.value)}
+              placeholder={isRegister ? 'name@company.com' : 'RX-1042 or name@company.com'}
+              required
+            />
+
             <div className="password-label-row">
               <label htmlFor="login-password">Password</label>
-              <button type="button" className="text-button" onClick={() => setError('For this demo, use one of the sample accounts below. In production, password recovery will be handled by the identity provider.')}>Forgot password?</button>
+              {!isRegister && (
+                <button type="button" className="text-button" onClick={() => setError('For this demo, use one of the sample accounts below. In production, password recovery will be handled by the identity provider.')}>
+                  Forgot password?
+                </button>
+              )}
             </div>
             <div className="password-field">
-              <input id="login-password" type={showPassword ? 'text' : 'password'} autoComplete="current-password" value={password} onChange={(event) => setPassword(event.target.value)} placeholder="Enter your password" required />
-              <button type="button" className="password-toggle" onClick={() => setShowPassword(!showPassword)} aria-label={showPassword ? 'Hide password' : 'Show password'}>{showPassword ? 'Hide' : 'Show'}</button>
+              <input
+                id="login-password"
+                type={showPassword ? 'text' : 'password'}
+                autoComplete={isRegister ? 'new-password' : 'current-password'}
+                minLength={isRegister ? 8 : undefined}
+                value={password}
+                onChange={(event) => setPassword(event.target.value)}
+                placeholder={isRegister ? 'Create password (min 8 chars)' : 'Enter your password'}
+                required
+              />
+              <button type="button" className="password-toggle" onClick={() => setShowPassword(!showPassword)} aria-label={showPassword ? 'Hide password' : 'Show password'}>
+                {showPassword ? 'Hide' : 'Show'}
+              </button>
             </div>
+            {isRegister && <span className="field-hint">Minimum 8 characters</span>}
+
+            {successMessage && <div className="auth-success" role="status">{successMessage}</div>}
             {error && <div className="auth-error" role="alert">{error}</div>}
-            <button type="submit" className="button button-primary auth-submit" disabled={isLoading}>{isLoading ? 'Signing in…' : 'Sign in'}<Icon name="chevron" size={15} /></button>
+
+            <button type="submit" className="button button-primary auth-submit" disabled={isLoading}>
+              {isLoading ? (isRegister ? 'Creating account…' : 'Signing in…') : (isRegister ? 'Create account' : 'Sign in')}
+              <Icon name="chevron" size={15} />
+            </button>
           </form>
 
           <div className="demo-access">
