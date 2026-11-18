@@ -1,6 +1,6 @@
 import { initialSystems, workflowStorageKeys } from '../data/mockData'
 import type { System, Modal } from '../types'
-import type { UserRole } from '../auth/mockAuth'
+import type { UserRole } from '../auth/session'
 
 export function restoreApproval(): 'pending' | 'approved' | 'declined' {
   const savedApproval = window.sessionStorage.getItem(workflowStorageKeys.approval)

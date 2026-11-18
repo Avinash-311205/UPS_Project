@@ -1,5 +1,5 @@
 import type { Page, Shipment, System } from '../types'
-import type { UserRole } from '../auth/mockAuth'
+import type { UserRole } from '../auth/session'
 
 export const initialSystems: System[] = [
   { name: 'Transportation (TMS)', description: 'Route planning & dispatch', status: 'Operational', latency: '42 ms', uptime: '99.98%', icon: 'truck' },

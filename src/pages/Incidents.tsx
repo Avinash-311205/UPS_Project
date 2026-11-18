@@ -1,5 +1,5 @@
 import type { Modal, Page } from '../types'
-import type { UserRole } from '../auth/mockAuth'
+import type { UserRole } from '../auth/session'
 import { roleCanPerformAction } from '../lib/workflow'
 import Icon from '../components/Icon'
 import PanelHeader from '../components/PanelHeader'
