@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
-import type { AuthUser } from './auth/mockAuth'
-import { roleLabels } from './auth/mockAuth'
+import type { AuthUser } from './auth/session'
+import { roleLabels } from './auth/session'
 import { currentDateLabel, currentYear, initialShipments, navItems, operatorShipmentIds, pagesByRole, workflowStorageKeys } from './data/mockData'
 import { restoreApproval, restoreSystems, roleCanPerformAction } from './lib/workflow'
 import type { Modal, Page, Shipment, System } from './types'

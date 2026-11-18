@@ -7,7 +7,7 @@ export interface ApiResponse<T> {
 export interface LoginResult {
   token: string
   email: string
-  username?: string
+  username: string
 }
 
 export interface RegisterResult {
@@ -16,30 +16,38 @@ export interface RegisterResult {
   email: string
 }
 
-export async function loginUser(email: string, password: string): Promise<ApiResponse<LoginResult>> {
-  const response = await fetch('/api/authentication/login', {
+async function postJson<T>(path: string, body: unknown): Promise<ApiResponse<T>> {
+  const response = await fetch(path, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify({ email, password }),
+    body: JSON.stringify(body),
   })
 
-  const data = await response.json()
+  let data: ApiResponse<T>
+  try {
+    data = await response.json() as ApiResponse<T>
+  } catch {
+    throw new Error('The authentication service returned an invalid response.')
+  }
+
+  if (!response.ok && data.success) {
+    throw new Error(data.message || `Authentication failed (${response.status}).`)
+  }
   return data
 }
 
-export async function registerUser(username: string, email: string, password: string): Promise<ApiResponse<RegisterResult>> {
-  const response = await fetch('/api/authentication/register', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({ username, email, password }),
-  })
+export function loginUser(email: string, password: string): Promise<ApiResponse<LoginResult>> {
+  return postJson('/api/authentication/login', { email, password })
+}
 
-  const data = await response.json()
-  return data
+export function registerUser(username: string, email: string, password: string): Promise<ApiResponse<RegisterResult>> {
+  return postJson('/api/authentication/register', { username, email, password })
+}
+
+export function googleLogin(credential: string): Promise<ApiResponse<LoginResult>> {
+  return postJson('/api/authentication/google', { credential })
 }
 
 export function parseJwtPayload(token: string): Record<string, unknown> | null {

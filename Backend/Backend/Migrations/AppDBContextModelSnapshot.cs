@@ -35,8 +35,8 @@ namespace Backend.Migrations
 
                     b.Property<string>("Username")
                         .IsRequired()
-                        .HasMaxLength(10)
-                        .HasColumnType("varchar(10)");
+                        .HasMaxLength(50)
+                        .HasColumnType("varchar(50)");
 
                     b.HasKey("Id");
 

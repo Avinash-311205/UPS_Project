@@ -1,6 +1,6 @@
-# ResilienceX frontend demo
+# ResilienceX
 
-Responsive React + TypeScript frontend prototype for logistics cyber-resilience operations.
+React + TypeScript frontend and ASP.NET Core authentication backend for logistics resilience operations.
 
 ## Run locally
 
@@ -9,28 +9,32 @@ npm install
 npm run dev
 ```
 
-## Demo sign-in accounts
+## Email authentication
 
-Use an employee ID or email and the matching demo password:
+Registration requires a username (up to 50 characters), email, and password (at least 8 characters). Sign-in requires the registered email and password. Passwords are hashed by the backend; the frontend does not contain demo-account fallbacks.
 
-| Role | Employee ID | Email | Password |
-| --- | --- | --- | --- |
-| Operations Manager | `RX-1042` | `manager@resiliencex.com` | `Password123!` |
-| IT / Security Administrator | `RX-2086` | `security@resiliencex.com` | `SecurePass456!` |
-| Hub Operator | `RX-3195` | `operator@resiliencex.com` | `HubOps789!` |
+The Vite development server proxies `/api` to `http://localhost:5123`. Start the ASP.NET Core backend and configure its database connection string before registering users. Set the connection string locally with .NET user secrets (do not commit database credentials):
 
-The login screen demo-account buttons sign directly into that role's mock dashboard. Signing in saves a mock user ID in `sessionStorage` for the current browser tab. Sign out clears that session.
+```sh
+cd Backend/Backend
+dotnet user-secrets set "ConnectionStrings:DefaultConnection" "Server=localhost;Database=resilienceX;User=YOUR_DB_USER;Password=YOUR_DB_PASSWORD;"
+dotnet user-secrets set "Jwt:Key" "YOUR_RANDOM_SECRET_KEY_AT_LEAST_32_CHARACTERS"
+dotnet ef database update
+dotnet run
+```
 
-When the login screen loads, `public/promo_video.mp4` plays as a full-viewport intro and the login form appears when it ends. The original MP4 is served without transcoding and does not loop. Browsers commonly block autoplay with sound until the user interacts with the page; when blocked, use the on-screen **Play introduction with sound** prompt. **Skip intro** is also available.
+The existing EF migration creates the `Users` table in the configured database. The backend stores password hashes, not plaintext passwords.
 
-## Demo permissions
+## Google sign-in
 
-- **Operations Manager:** reviews and approves or rejects continuity activation.
-- **IT / Security Administrator:** views system health, isolates the affected integration, and handles recovery validation and reconciliation.
-- **Hub Operator:** sees only the two mock shipments assigned to the hub and can record shipment activity after continuity is approved; system and recovery controls are not available.
+Create a Google OAuth client ID for the app's origin, then configure the same client ID for both the frontend and backend:
 
-Continuity activation remains unavailable until an Operations Manager explicitly approves it. Mock incident and continuity state is retained in `sessionStorage` across sign-outs in the same browser tab so the role handoff can be demonstrated.
+```sh
+# Frontend .env.local
+VITE_GOOGLE_CLIENT_ID=your-client-id.apps.googleusercontent.com
 
-## Backend integration note
+# Backend (from Backend/Backend)
+dotnet user-secrets set "Google:ClientId" "your-client-id.apps.googleusercontent.com"
+```
 
-Authentication and role checks are simulated in the browser using `src/auth/mockAuth.ts`. This is demonstration behavior only: it is not secure authentication, and client-side permission checks can be bypassed. Do not use real credentials or rely on this frontend to protect data. Replace the mock auth module with the backend API client when the ASP.NET Core Identity/JWT service is ready, and enforce every role and action on the API as well.
+Google credentials are validated by the backend; a verified Google email can register or sign in. The Google button remains unavailable until the OAuth client ID is configured. Never share database passwords in chat or commit them to source control.

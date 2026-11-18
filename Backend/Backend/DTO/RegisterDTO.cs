@@ -5,7 +5,7 @@ namespace Backend.DTO
     public class RegisterDTO
     {
         [Required]
-        [MaxLength(10)]
+        [MaxLength(50)]
         public string Username { get; set; } = string.Empty;
 
         [Required]

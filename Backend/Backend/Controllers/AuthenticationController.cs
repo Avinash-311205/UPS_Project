@@ -64,9 +64,9 @@ namespace Backend.Controllers
         [ProducesResponseType(typeof(ResponseDTO<LoginResponseDTO>), StatusCodes.Status401Unauthorized)]
         public async Task<IActionResult> Login([FromBody] LoginDTO loginDto, CancellationToken cancellationToken)
         {
-            var token = await _authService.LoginAsync(loginDto, cancellationToken);
+            var result = await _authService.LoginAsync(loginDto, cancellationToken);
 
-            if (token == null)
+            if (result == null)
             {
                 return Unauthorized(new ResponseDTO<LoginResponseDTO>
                 {
@@ -78,8 +78,9 @@ namespace Backend.Controllers
 
             var loginResponse = new LoginResponseDTO
             {
-                Token = token,
-                Email = loginDto.Email
+                Token = result.Value.Token,
+                Username = result.Value.User.Username,
+                Email = result.Value.User.Email
             };
 
             return Ok(new ResponseDTO<LoginResponseDTO>
@@ -87,6 +88,35 @@ namespace Backend.Controllers
                 Success = true,
                 Message = "Login successful.",
                 Data = loginResponse
+            });
+        }
+
+        [HttpPost("google")]
+        [ProducesResponseType(typeof(ResponseDTO<LoginResponseDTO>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ResponseDTO<LoginResponseDTO>), StatusCodes.Status401Unauthorized)]
+        public async Task<IActionResult> GoogleLogin([FromBody] GoogleLoginDTO googleLoginDto, CancellationToken cancellationToken)
+        {
+            var result = await _authService.LoginWithGoogleAsync(googleLoginDto.Credential, cancellationToken);
+            if (result == null)
+            {
+                return Unauthorized(new ResponseDTO<LoginResponseDTO>
+                {
+                    Success = false,
+                    Message = "Google sign-in could not be verified.",
+                    Data = null
+                });
+            }
+
+            return Ok(new ResponseDTO<LoginResponseDTO>
+            {
+                Success = true,
+                Message = "Login successful.",
+                Data = new LoginResponseDTO
+                {
+                    Token = result.Value.Token,
+                    Username = result.Value.User.Username,
+                    Email = result.Value.User.Email
+                }
             });
         }
     }

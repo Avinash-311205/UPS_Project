@@ -9,6 +9,8 @@ namespace Backend.Interface
         Task<User?> RegisterAsync(RegisterDTO registerDto, CancellationToken cancellationToken = default);
 
        
-        Task<string?> LoginAsync(LoginDTO loginDto, CancellationToken cancellationToken = default);
+        Task<(User User, string Token)?> LoginAsync(LoginDTO loginDto, CancellationToken cancellationToken = default);
+
+        Task<(User User, string Token)?> LoginWithGoogleAsync(string credential, CancellationToken cancellationToken = default);
     }
 }
