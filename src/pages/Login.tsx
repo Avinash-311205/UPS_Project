@@ -227,7 +227,6 @@ export default function LoginPage({
         </p>
       </section>
 
-      <p className="auth-caption">ResilienceX <span>·</span> Logistics resilience, made clear.</p>
     </main>
   )
 }
