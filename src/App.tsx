@@ -1,9 +1,11 @@
 import { useCallback, useState } from 'react'
 import { googleLogin, loginUser, registerUser } from './services/authApi'
 import LoginPage from './pages/Login'
+import StaticHome from './pages/StaticHome'
 import './App.css'
 
 export default function App() {
+  const [isSignedIn, setIsSignedIn] = useState(false)
   const [isRegister, setIsRegister] = useState(false)
   const [username, setUsername] = useState('')
   const [email, setEmail] = useState('')
@@ -27,9 +29,7 @@ export default function App() {
           return
         }
 
-        setIsRegister(false)
-        setPassword('')
-        setSuccessMessage('Account created. Sign in with your email and password.')
+        setIsSignedIn(true)
       } else {
         const loginRes = await loginUser(email.trim(), password)
         if (!loginRes.success || !loginRes.data) {
@@ -38,7 +38,7 @@ export default function App() {
         }
 
         setPassword('')
-        setSuccessMessage('Sign-in successful.')
+        setIsSignedIn(true)
       }
     } catch (requestError) {
       setError(requestError instanceof Error ? requestError.message : 'Unable to reach the authentication service.')
@@ -59,13 +59,17 @@ export default function App() {
       }
 
       setPassword('')
-      setSuccessMessage('Google sign-in successful.')
+      setIsSignedIn(true)
     } catch (requestError) {
       setError(requestError instanceof Error ? requestError.message : 'Unable to reach the authentication service.')
     } finally {
       setIsLoading(false)
     }
   }, [])
+
+  if (isSignedIn) {
+    return <StaticHome displayName={username.trim() || email.split('@')[0] || 'Operations'} />
+  }
 
   return (
     <LoginPage
