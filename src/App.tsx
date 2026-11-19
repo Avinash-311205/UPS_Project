@@ -1,13 +1,9 @@
 import { useCallback, useState } from 'react'
-import { clearSession, restoreSession, saveSession } from './auth/session'
-import type { AuthUser } from './auth/session'
-import { googleLogin, loginUser, parseJwtPayload, registerUser } from './services/authApi'
-import DashboardApp from './Dashboard'
+import { googleLogin, loginUser, registerUser } from './services/authApi'
 import LoginPage from './pages/Login'
 import './App.css'
 
 export default function App() {
-  const [user, setUser] = useState<AuthUser | null>(() => restoreSession())
   const [isRegister, setIsRegister] = useState(false)
   const [username, setUsername] = useState('')
   const [email, setEmail] = useState('')
@@ -16,25 +12,6 @@ export default function App() {
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState('')
   const [successMessage, setSuccessMessage] = useState('')
-
-  const finishLogin = (token: string, loginEmail: string, loginUsername?: string) => {
-    const jwtPayload = parseJwtPayload(token)
-    const resolvedName =
-      loginUsername ||
-      (jwtPayload?.['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name'] as string) ||
-      (jwtPayload?.['name'] as string) ||
-      loginEmail.split('@')[0]
-    const authenticatedUser: AuthUser = {
-      id: String(jwtPayload?.['sub'] || loginEmail),
-      employeeId: loginEmail,
-      name: resolvedName,
-      email: loginEmail,
-      role: 'operations-manager',
-    }
-
-    saveSession(authenticatedUser, token)
-    setUser(authenticatedUser)
-  }
 
   const handleAuthSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()
@@ -60,7 +37,8 @@ export default function App() {
           return
         }
 
-        finishLogin(loginRes.data.token, loginRes.data.email, loginRes.data.username)
+        setPassword('')
+        setSuccessMessage('Sign-in successful.')
       }
     } catch (requestError) {
       setError(requestError instanceof Error ? requestError.message : 'Unable to reach the authentication service.')
@@ -80,23 +58,14 @@ export default function App() {
         return
       }
 
-      finishLogin(loginRes.data.token, loginRes.data.email, loginRes.data.username)
+      setPassword('')
+      setSuccessMessage('Google sign-in successful.')
     } catch (requestError) {
       setError(requestError instanceof Error ? requestError.message : 'Unable to reach the authentication service.')
     } finally {
       setIsLoading(false)
     }
   }, [])
-
-  const signOut = () => {
-    clearSession()
-    setUser(null)
-    setPassword('')
-    setError('')
-    setSuccessMessage('')
-  }
-
-  if (user) return <DashboardApp user={user} onLogout={signOut} />
 
   return (
     <LoginPage
