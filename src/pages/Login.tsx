@@ -74,11 +74,12 @@ export default function LoginPage({
         client_id: googleClientId,
         callback: ({ credential }) => onGoogleToken(credential),
       })
+      const buttonWidth = Math.max(240, Math.min(button.clientWidth || 360, 360))
       google.accounts.id.renderButton(button, {
         theme: 'outline',
         size: 'large',
         text: 'continue_with',
-        width: Math.min(button.clientWidth, 360),
+        width: buttonWidth,
       })
     }
 
@@ -227,6 +228,7 @@ export default function LoginPage({
         </p>
       </section>
 
+      <p className="auth-caption">ResilienceX <span>·</span> Operational Resilience and Dependency Management.</p>
     </main>
   )
 }

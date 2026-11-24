@@ -1,11 +1,13 @@
 import { useCallback, useState } from 'react'
-import { googleLogin, loginUser, registerUser } from './services/authApi'
+import { clearSession, restoreSession, saveSession } from './auth/session'
+import type { AuthUser } from './auth/session'
+import { googleLogin, loginUser, parseJwtPayload, registerUser } from './services/authApi'
+import DashboardApp from './Dashboard'
 import LoginPage from './pages/Login'
-import StaticHome from './pages/StaticHome'
 import './App.css'
 
 export default function App() {
-  const [isSignedIn, setIsSignedIn] = useState(false)
+  const [user, setUser] = useState<AuthUser | null>(() => restoreSession())
   const [isRegister, setIsRegister] = useState(false)
   const [username, setUsername] = useState('')
   const [email, setEmail] = useState('')
@@ -14,6 +16,25 @@ export default function App() {
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState('')
   const [successMessage, setSuccessMessage] = useState('')
+
+  const finishLogin = (token: string, loginEmail: string, loginUsername?: string) => {
+    const jwtPayload = parseJwtPayload(token)
+    const resolvedName =
+      loginUsername ||
+      (jwtPayload?.['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name'] as string) ||
+      (jwtPayload?.['name'] as string) ||
+      loginEmail.split('@')[0]
+    const authenticatedUser: AuthUser = {
+      id: String(jwtPayload?.['sub'] || loginEmail),
+      employeeId: loginEmail,
+      name: resolvedName,
+      email: loginEmail,
+      role: 'operations-manager',
+    }
+
+    saveSession(authenticatedUser, token)
+    setUser(authenticatedUser)
+  }
 
   const handleAuthSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()
@@ -29,7 +50,9 @@ export default function App() {
           return
         }
 
-        setIsSignedIn(true)
+        setIsRegister(false)
+        setPassword('')
+        setSuccessMessage('Account created. Sign in with your email and password.')
       } else {
         const loginRes = await loginUser(email.trim(), password)
         if (!loginRes.success || !loginRes.data) {
@@ -37,8 +60,7 @@ export default function App() {
           return
         }
 
-        setPassword('')
-        setIsSignedIn(true)
+        finishLogin(loginRes.data.token, loginRes.data.email, loginRes.data.username)
       }
     } catch (requestError) {
       setError(requestError instanceof Error ? requestError.message : 'Unable to reach the authentication service.')
@@ -58,8 +80,7 @@ export default function App() {
         return
       }
 
-      setPassword('')
-      setIsSignedIn(true)
+      finishLogin(loginRes.data.token, loginRes.data.email, loginRes.data.username)
     } catch (requestError) {
       setError(requestError instanceof Error ? requestError.message : 'Unable to reach the authentication service.')
     } finally {
@@ -67,9 +88,15 @@ export default function App() {
     }
   }, [])
 
-  if (isSignedIn) {
-    return <StaticHome displayName={username.trim() || email.split('@')[0] || 'Operations'} />
+  const signOut = () => {
+    clearSession()
+    setUser(null)
+    setPassword('')
+    setError('')
+    setSuccessMessage('')
   }
+
+  if (user) return <DashboardApp user={user} onLogout={signOut} />
 
   return (
     <LoginPage

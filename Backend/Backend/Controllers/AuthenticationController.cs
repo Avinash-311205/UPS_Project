@@ -1,5 +1,6 @@
-using Backend.DTO;
-using Backend.Interface;
+using Backend.Common.Responses;
+using Backend.Modules.Identity.DTOs;
+using Backend.Modules.Identity.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Backend.Controllers
@@ -42,7 +43,8 @@ namespace Backend.Controllers
             {
                 Id = user.Id,
                 Username = user.Username,
-                Email = user.Email
+                Email = user.Email,
+                TenantId = user.TenantId
             };
 
             return StatusCode(StatusCodes.Status201Created, new ResponseDTO<UserResponseDTO>
@@ -80,7 +82,8 @@ namespace Backend.Controllers
             {
                 Token = result.Value.Token,
                 Username = result.Value.User.Username,
-                Email = result.Value.User.Email
+                Email = result.Value.User.Email,
+                TenantId = result.Value.User.TenantId
             };
 
             return Ok(new ResponseDTO<LoginResponseDTO>
@@ -107,16 +110,19 @@ namespace Backend.Controllers
                 });
             }
 
+            var loginResponse = new LoginResponseDTO
+            {
+                Token = result.Value.Token,
+                Username = result.Value.User.Username,
+                Email = result.Value.User.Email,
+                TenantId = result.Value.User.TenantId
+            };
+
             return Ok(new ResponseDTO<LoginResponseDTO>
             {
                 Success = true,
                 Message = "Login successful.",
-                Data = new LoginResponseDTO
-                {
-                    Token = result.Value.Token,
-                    Username = result.Value.User.Username,
-                    Email = result.Value.User.Email
-                }
+                Data = loginResponse
             });
         }
     }
