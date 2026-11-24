@@ -8,6 +8,7 @@ import DependenciesPage from './pages/Dependencies'
 import BusinessOperationsPage from './pages/BusinessOperations'
 import IncidentsPage from './pages/Incidents'
 import ImpactAnalysisPage from './pages/ImpactAnalysis'
+import IamManagementPage from './pages/IamManagement'
 import './styles/commandCentre.css'
 
 interface DashboardAppProps {
@@ -49,6 +50,9 @@ export default function DashboardApp({ user, onLogout }: DashboardAppProps) {
           initialSystemId={navigationParam}
           onNavigate={handleNavigate}
         />
+      )}
+      {currentPage === 'IamManagement' && (
+        <IamManagementPage user={user} onNavigate={handleNavigate} />
       )}
     </AppLayout>
   )

@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using Backend.Modules.Identity.Enums;
 using Backend.Modules.Tenants.Models;
 
 namespace Backend.Modules.Identity.Models
@@ -27,5 +28,23 @@ namespace Backend.Modules.Identity.Models
         public Guid? TenantId { get; set; }
 
         public Tenant? Tenant { get; set; }
+
+        public AccountType AccountType { get; set; } = AccountType.IAM;
+
+        public UserStatus Status { get; set; } = UserStatus.Active;
+
+        [Required]
+        [MaxLength(36)]
+        public string SecurityStamp { get; set; } = Guid.NewGuid().ToString();
+
+        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+
+        public DateTime? UpdatedAt { get; set; }
+
+        /// <summary>
+        /// Generated column: Equals TenantId when AccountType is Root, NULL when IAM.
+        /// Enforced by MySQL UNIQUE INDEX UX_Users_RootTenantId to guarantee one Root per Tenant.
+        /// </summary>
+        public Guid? RootTenantId { get; set; }
     }
 }

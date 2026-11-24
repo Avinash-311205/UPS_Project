@@ -1,5 +1,10 @@
+using System.Security.Claims;
 using System.Text;
 using Backend.Infrastructure.Persistence;
+using Backend.Modules.IAM.Interfaces;
+using Backend.Modules.IAM.Services;
+using Backend.Modules.IAM.Tests;
+using Backend.Modules.Identity.Enums;
 using Backend.Modules.Identity.Interfaces;
 using Backend.Modules.Identity.Models;
 using Backend.Modules.Identity.Repositories;
@@ -42,6 +47,13 @@ namespace Backend
     {
         public static void Main(string[] args)
         {
+            if (args.Contains("--verify-iam-migration"))
+            {
+                var verifyExit = VerifyIamDatabaseMigration.Run();
+                Environment.Exit(verifyExit);
+                return;
+            }
+
             if (args.Contains("--verify-onboarding"))
             {
                 var verifyExit = Backend.Modules.Identity.Tests.VerifyLegacyUserOnboardingLive.Run();
@@ -58,7 +70,8 @@ namespace Backend
                 var opsExit = BusinessOperationTests.RunAllTests();
                 var impactExit = ImpactAnalysisTests.RunAllTests();
                 var incidentExit = IncidentTests.RunAllTests();
-                var exitCode = (tenantExit == 0 && systemsExit == 0 && depExit == 0 && graphExit == 0 && opsExit == 0 && impactExit == 0 && incidentExit == 0) ? 0 : 1;
+                var iamExit = IamManagementTests.RunAllTests();
+                var exitCode = (tenantExit == 0 && systemsExit == 0 && depExit == 0 && graphExit == 0 && opsExit == 0 && impactExit == 0 && incidentExit == 0 && iamExit == 0) ? 0 : 1;
                 Environment.Exit(exitCode);
                 return;
             }
@@ -110,6 +123,9 @@ namespace Backend
             builder.Services.AddScoped<IIncidentRepository, IncidentRepository>();
             builder.Services.AddScoped<IIncidentService, IncidentService>();
 
+            // IAM module services
+            builder.Services.AddScoped<IIamService, IamService>();
+
             // JWT Bearer Authentication
             var jwtKey = builder.Configuration["Jwt:Key"]
                 ?? throw new InvalidOperationException("JWT Key is not configured.");
@@ -138,9 +154,89 @@ namespace Backend
                     ValidateLifetime = true,
                     ClockSkew = TimeSpan.FromMinutes(1)
                 };
+                options.Events = new JwtBearerEvents
+                {
+                    OnTokenValidated = async context =>
+                    {
+                        var principal = context.Principal;
+                        if (principal == null)
+                        {
+                            context.Fail("Missing principal.");
+                            return;
+                        }
+
+                        var userIdClaim = principal.FindFirst(ClaimTypes.NameIdentifier)?.Value
+                                          ?? principal.FindFirst("sub")?.Value;
+                        if (string.IsNullOrWhiteSpace(userIdClaim) || !int.TryParse(userIdClaim, out var userId))
+                        {
+                            context.Fail("Invalid or missing user ID claim.");
+                            return;
+                        }
+
+                        var db = context.HttpContext.RequestServices.GetRequiredService<AppDbContext>();
+                        var user = await db.Users.IgnoreQueryFilters().FirstOrDefaultAsync(u => u.Id == userId);
+                        if (user == null)
+                        {
+                            context.Fail("User does not exist.");
+                            return;
+                        }
+
+                        if (user.Status != UserStatus.Active)
+                        {
+                            context.Fail("User account is inactive or disabled.");
+                            return;
+                        }
+
+                        var secStampClaim = principal.FindFirst("sec_stamp")?.Value;
+                        if (string.IsNullOrWhiteSpace(secStampClaim) || secStampClaim != user.SecurityStamp)
+                        {
+                            context.Fail("Security stamp mismatch or missing. Token has been invalidated.");
+                            return;
+                        }
+
+                        var tenantClaim = principal.FindFirst("tenant_id")?.Value;
+                        if (user.TenantId.HasValue)
+                        {
+                            if (string.IsNullOrWhiteSpace(tenantClaim) || !Guid.TryParse(tenantClaim, out var claimTenantGuid) || claimTenantGuid != user.TenantId.Value)
+                            {
+                                context.Fail("Tenant ID claim mismatch.");
+                                return;
+                            }
+                        }
+                        else
+                        {
+                            if (!string.IsNullOrWhiteSpace(tenantClaim))
+                            {
+                                context.Fail("Unexpected tenant ID claim for user without tenant.");
+                                return;
+                            }
+                        }
+
+                        var accountTypeClaim = principal.FindFirst("account_type")?.Value;
+                        if (string.IsNullOrWhiteSpace(accountTypeClaim) || accountTypeClaim != user.AccountType.ToString())
+                        {
+                            context.Fail("Account type claim mismatch.");
+                            return;
+                        }
+
+                        var roleClaim = principal.FindFirst(ClaimTypes.Role)?.Value;
+                        if (!string.IsNullOrWhiteSpace(roleClaim) && roleClaim != user.AccountType.ToString())
+                        {
+                            context.Fail("Role claim mismatch.");
+                            return;
+                        }
+                    }
+                };
             });
 
-            builder.Services.AddAuthorization();
+            builder.Services.AddAuthorization(options =>
+            {
+                options.AddPolicy("RootOnly", policy =>
+                {
+                    policy.RequireAuthenticatedUser();
+                    policy.RequireRole("Root");
+                });
+            });
             builder.Services.AddControllers();
 
             // OpenAPI / Swagger with JWT Bearer support

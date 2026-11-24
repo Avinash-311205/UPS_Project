@@ -8,6 +8,8 @@ export interface LoginResult {
   token: string
   email: string
   username: string
+  accountType?: number
+  status?: number
 }
 
 export interface RegisterResult {

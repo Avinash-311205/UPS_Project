@@ -129,8 +129,53 @@ namespace Backend.Infrastructure.Persistence
                         throw new UnauthorizedAccessException(
                             $"Cross-tenant write prohibited. Cannot create user with TenantId '{entry.Entity.TenantId}' inside Tenant '{currentTenantId}'.");
                     }
+
+                    // Enforce exactly one Root per Tenant
+                    if (entry.Entity.AccountType == Backend.Modules.Identity.Enums.AccountType.Root && entry.Entity.TenantId.HasValue)
+                    {
+                        var hasExistingRoot = Users.IgnoreQueryFilters().Any(u =>
+                            u.TenantId == entry.Entity.TenantId &&
+                            u.AccountType == Backend.Modules.Identity.Enums.AccountType.Root &&
+                            u.Id != entry.Entity.Id);
+
+                        if (hasExistingRoot)
+                        {
+                            throw new InvalidOperationException(
+                                $"Tenant '{entry.Entity.TenantId}' already has a Root account. Only one Root account is permitted per Tenant.");
+                        }
+                    }
+
+                    entry.Entity.RootTenantId = entry.Entity.AccountType == Backend.Modules.Identity.Enums.AccountType.Root
+                        ? entry.Entity.TenantId
+                        : null;
                 }
-                else if (entry.State == EntityState.Modified || entry.State == EntityState.Deleted)
+                else if (entry.State == EntityState.Modified)
+                {
+                    if (!entry.Entity.TenantId.HasValue || entry.Entity.TenantId.Value != currentTenantId)
+                    {
+                        throw new UnauthorizedAccessException(
+                            $"Cross-tenant mutation prohibited. Cannot modify or delete user belonging to Tenant '{entry.Entity.TenantId}' from Tenant '{currentTenantId}'.");
+                    }
+
+                    if (entry.Entity.AccountType == Backend.Modules.Identity.Enums.AccountType.Root && entry.Entity.TenantId.HasValue)
+                    {
+                        var hasExistingRoot = Users.IgnoreQueryFilters().Any(u =>
+                            u.TenantId == entry.Entity.TenantId &&
+                            u.AccountType == Backend.Modules.Identity.Enums.AccountType.Root &&
+                            u.Id != entry.Entity.Id);
+
+                        if (hasExistingRoot)
+                        {
+                            throw new InvalidOperationException(
+                                $"Tenant '{entry.Entity.TenantId}' already has a Root account. Only one Root account is permitted per Tenant.");
+                        }
+                    }
+
+                    entry.Entity.RootTenantId = entry.Entity.AccountType == Backend.Modules.Identity.Enums.AccountType.Root
+                        ? entry.Entity.TenantId
+                        : null;
+                }
+                else if (entry.State == EntityState.Deleted)
                 {
                     if (!entry.Entity.TenantId.HasValue || entry.Entity.TenantId.Value != currentTenantId)
                     {

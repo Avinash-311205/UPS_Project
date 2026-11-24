@@ -15,6 +15,10 @@ import type {
   UpdateIncidentDTO,
   UpdateIncidentStatusDTO,
   ImpactAnalysisResponseDTO,
+  IamUserResponseDTO,
+  CreateIamUserDTO,
+  ResetIamUserPasswordDTO,
+  UserStatus,
 } from '../types'
 
 const TOKEN_KEY = 'resiliencex-auth-token'
@@ -287,5 +291,39 @@ export const api = {
     const res = await request<ImpactAnalysisResponseDTO>(`/api/impact-analysis/${systemId}`)
     if (!res.data) throw new Error(res.message || 'Failed to calculate impact analysis')
     return res.data
+  },
+
+  // ==========================================
+  // IAM MANAGEMENT (ROOT-ONLY)
+  // ==========================================
+  async getIamUsers(): Promise<IamUserResponseDTO[]> {
+    const res = await request<IamUserResponseDTO[]>('/api/iam/users')
+    return res.data || []
+  },
+
+  async createIamUser(data: CreateIamUserDTO): Promise<IamUserResponseDTO> {
+    const res = await request<IamUserResponseDTO>('/api/iam/users', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    })
+    if (!res.data) throw new Error(res.message || 'Failed to provision IAM user')
+    return res.data
+  },
+
+  async updateIamUserStatus(id: number, status: UserStatus): Promise<IamUserResponseDTO> {
+    const res = await request<IamUserResponseDTO>(`/api/iam/users/${id}/status`, {
+      method: 'PATCH',
+      body: JSON.stringify({ status }),
+    })
+    if (!res.data) throw new Error(res.message || 'Failed to update user status')
+    return res.data
+  },
+
+  async resetIamUserPassword(id: number, data: ResetIamUserPasswordDTO): Promise<string> {
+    const res = await request<object>(`/api/iam/users/${id}/reset-password`, {
+      method: 'POST',
+      body: JSON.stringify(data),
+    })
+    return res.message || 'Password reset successfully'
   },
 }

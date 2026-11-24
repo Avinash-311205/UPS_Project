@@ -1,4 +1,5 @@
 using Backend.Infrastructure.Persistence;
+using Backend.Modules.Identity.Enums;
 using Backend.Modules.Identity.Interfaces;
 using Backend.Modules.Identity.Models;
 using Microsoft.EntityFrameworkCore;
@@ -14,6 +15,19 @@ namespace Backend.Modules.Identity.Repositories
             _context = context;
         }
 
+        public async Task<User?> GetByIdAsync(int id, CancellationToken cancellationToken = default)
+        {
+            return await _context.Users
+                .IgnoreQueryFilters()
+                .FirstOrDefaultAsync(u => u.Id == id, cancellationToken);
+        }
+
+        public async Task<User?> GetByIdAndTenantAsync(int id, Guid tenantId, CancellationToken cancellationToken = default)
+        {
+            return await _context.Users
+                .FirstOrDefaultAsync(u => u.Id == id && u.TenantId == tenantId, cancellationToken);
+        }
+
         public async Task<User?> GetByEmailAsync(string email, CancellationToken cancellationToken = default)
         {
             // Explicitly bypasses global query filter to allow authenticating users across tenants or unassigned users
@@ -27,7 +41,15 @@ namespace Backend.Modules.Identity.Repositories
             // Explicitly bypasses global query filter to verify global email uniqueness across all tenants
             return await _context.Users
                 .IgnoreQueryFilters()
-                .AnyAsync(u => u.Email == email, cancellationToken);
+                .AnyAsync(u => u.Email.ToLower() == email.Trim().ToLower(), cancellationToken);
+        }
+
+        public async Task<IEnumerable<User>> GetIamUsersByTenantAsync(Guid tenantId, CancellationToken cancellationToken = default)
+        {
+            return await _context.Users
+                .Where(u => u.TenantId == tenantId && u.AccountType == AccountType.IAM)
+                .OrderBy(u => u.Username)
+                .ToListAsync(cancellationToken);
         }
 
         public async Task<User> AddAsync(User user, CancellationToken cancellationToken = default)

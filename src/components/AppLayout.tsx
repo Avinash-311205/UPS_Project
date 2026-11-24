@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useMemo } from 'react'
 import type { AuthUser } from '../auth/session'
 import type { Page } from '../types'
 
@@ -10,15 +10,6 @@ interface AppLayoutProps {
   children: React.ReactNode
 }
 
-const navItems: { page: Page; index: string; label: string }[] = [
-  { page: 'Overview', index: '01', label: 'Overview' },
-  { page: 'Systems', index: '02', label: 'Systems' },
-  { page: 'Dependencies', index: '03', label: 'Dependencies' },
-  { page: 'Operations', index: '04', label: 'Business Ops' },
-  { page: 'Incidents', index: '05', label: 'Incidents' },
-  { page: 'ImpactAnalysis', index: '06', label: 'Impact Analysis' },
-]
-
 export default function AppLayout({
   user,
   currentPage,
@@ -26,7 +17,22 @@ export default function AppLayout({
   onLogout,
   children,
 }: AppLayoutProps) {
-  const currentNav = navItems.find((item) => item.page === currentPage) || navItems[0]
+  const visibleNavItems = useMemo(() => {
+    const items = [
+      { page: 'Overview' as Page, index: '01', label: 'Overview' },
+      { page: 'Systems' as Page, index: '02', label: 'Systems' },
+      { page: 'Dependencies' as Page, index: '03', label: 'Dependencies' },
+      { page: 'Operations' as Page, index: '04', label: 'Business Ops' },
+      { page: 'Incidents' as Page, index: '05', label: 'Incidents' },
+      { page: 'ImpactAnalysis' as Page, index: '06', label: 'Impact Analysis' },
+    ]
+    if (user.accountType === 'Root') {
+      items.push({ page: 'IamManagement' as Page, index: '07', label: 'IAM Management' })
+    }
+    return items
+  }, [user.accountType])
+
+  const currentNav = visibleNavItems.find((item) => item.page === currentPage) || visibleNavItems[0]
 
   return (
     <div className="cc-app">
@@ -43,7 +49,7 @@ export default function AppLayout({
         <div className="cc-nav-section-title">// NAVIGATION MATRIX</div>
 
         <ul className="cc-nav-list">
-          {navItems.map((item) => {
+          {visibleNavItems.map((item) => {
             const isActive = currentPage === item.page
             return (
               <li key={item.page} className="cc-nav-item">
@@ -85,6 +91,22 @@ export default function AppLayout({
 
           <div className="cc-topbar-actions">
             <div className="cc-user-badge">
+              <span
+                style={{
+                  display: 'inline-block',
+                  padding: '1px 6px',
+                  borderRadius: '3px',
+                  fontSize: '9px',
+                  fontWeight: 700,
+                  fontFamily: 'var(--cc-font-mono)',
+                  letterSpacing: '0.06em',
+                  background: user.accountType === 'Root' ? 'rgba(239, 68, 68, 0.2)' : 'rgba(59, 130, 246, 0.2)',
+                  color: user.accountType === 'Root' ? '#f87171' : '#60a5fa',
+                  border: user.accountType === 'Root' ? '1px solid rgba(239, 68, 68, 0.4)' : '1px solid rgba(59, 130, 246, 0.4)',
+                }}
+              >
+                {user.accountType === 'Root' ? 'ROOT' : 'IAM'}
+              </span>
               <span>OP:</span>
               <strong>{user.name}</strong>
               <span style={{ color: '#555555' }}>|</span>

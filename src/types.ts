@@ -10,6 +10,7 @@ export type Page =
   | 'Shipments'
   | 'Continuity'
   | 'Recovery'
+  | 'IamManagement'
 
 // ==========================================
 // CONSTANTS & TYPES (erasableSyntaxOnly compliant)
@@ -434,3 +435,55 @@ export interface ImpactAnalysisResponseDTO {
   requiresVerificationOperationsCount: number
   affectedOperations: AffectedOperationDTO[]
 }
+
+// ==========================================
+// IAM & ROOT ACCOUNT MANAGEMENT TYPES
+// ==========================================
+
+export const AccountType = {
+  Root: 1,
+  IAM: 2,
+} as const
+export type AccountType = (typeof AccountType)[keyof typeof AccountType]
+
+export const accountTypeLabels: Record<AccountType, string> = {
+  [AccountType.Root]: 'Root',
+  [AccountType.IAM]: 'IAM User',
+}
+
+export const UserStatus = {
+  Active: 1,
+  Inactive: 2,
+} as const
+export type UserStatus = (typeof UserStatus)[keyof typeof UserStatus]
+
+export const userStatusLabels: Record<UserStatus, string> = {
+  [UserStatus.Active]: 'Active',
+  [UserStatus.Inactive]: 'Inactive',
+}
+
+export interface IamUserResponseDTO {
+  id: number
+  username: string
+  email: string
+  tenantId: string | null
+  accountType: AccountType
+  status: UserStatus
+  createdAt: string
+  updatedAt?: string | null
+}
+
+export interface CreateIamUserDTO {
+  username: string
+  email: string
+  password: string
+}
+
+export interface UpdateIamUserStatusDTO {
+  status: UserStatus
+}
+
+export interface ResetIamUserPasswordDTO {
+  newPassword: string
+}
+

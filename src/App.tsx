@@ -24,12 +24,21 @@ export default function App() {
       (jwtPayload?.['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name'] as string) ||
       (jwtPayload?.['name'] as string) ||
       loginEmail.split('@')[0]
+    const rawRole =
+      (jwtPayload?.['http://schemas.microsoft.com/ws/2008/06/identity/claims/role'] as string) ||
+      (jwtPayload?.['role'] as string) ||
+      (jwtPayload?.['account_type'] as string)
+    const accountType: 'Root' | 'IAM' = rawRole === 'Root' ? 'Root' : 'IAM'
+    const tenantId = (jwtPayload?.['tenant_id'] as string) || null
+
     const authenticatedUser: AuthUser = {
       id: String(jwtPayload?.['sub'] || loginEmail),
       employeeId: loginEmail,
       name: resolvedName,
       email: loginEmail,
       role: 'operations-manager',
+      accountType,
+      tenantId,
     }
 
     saveSession(authenticatedUser, token)

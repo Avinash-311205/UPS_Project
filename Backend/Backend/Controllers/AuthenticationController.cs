@@ -44,7 +44,9 @@ namespace Backend.Controllers
                 Id = user.Id,
                 Username = user.Username,
                 Email = user.Email,
-                TenantId = user.TenantId
+                TenantId = user.TenantId,
+                AccountType = user.AccountType,
+                Status = user.Status
             };
 
             return StatusCode(StatusCodes.Status201Created, new ResponseDTO<UserResponseDTO>
@@ -83,7 +85,9 @@ namespace Backend.Controllers
                 Token = result.Value.Token,
                 Username = result.Value.User.Username,
                 Email = result.Value.User.Email,
-                TenantId = result.Value.User.TenantId
+                TenantId = result.Value.User.TenantId,
+                AccountType = result.Value.User.AccountType,
+                Status = result.Value.User.Status
             };
 
             return Ok(new ResponseDTO<LoginResponseDTO>
@@ -115,7 +119,9 @@ namespace Backend.Controllers
                 Token = result.Value.Token,
                 Username = result.Value.User.Username,
                 Email = result.Value.User.Email,
-                TenantId = result.Value.User.TenantId
+                TenantId = result.Value.User.TenantId,
+                AccountType = result.Value.User.AccountType,
+                Status = result.Value.User.Status
             };
 
             return Ok(new ResponseDTO<LoginResponseDTO>

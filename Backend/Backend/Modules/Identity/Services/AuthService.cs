@@ -56,12 +56,16 @@ namespace Backend.Modules.Identity.Services
             await _tenantRepository.AddAsync(newTenant, cancellationToken);
             var tenantId = newTenant.Id;
 
-            // Create user entity
+            // Create user entity as Root Account for the newly registered tenant workspace
             var user = new User
             {
-                Username = registerDto.Username,
-                Email = registerDto.Email,
-                TenantId = tenantId
+                Username = registerDto.Username.Trim(),
+                Email = registerDto.Email.Trim(),
+                TenantId = tenantId,
+                AccountType = Backend.Modules.Identity.Enums.AccountType.Root,
+                Status = Backend.Modules.Identity.Enums.UserStatus.Active,
+                SecurityStamp = Guid.NewGuid().ToString(),
+                CreatedAt = DateTime.UtcNow
             };
 
             // Hash password and store only the hash
@@ -81,6 +85,12 @@ namespace Backend.Modules.Identity.Services
             // Retrieve user by email
             var user = await _userRepository.GetByEmailAsync(loginDto.Email, cancellationToken);
             if (user == null)
+            {
+                return null;
+            }
+
+            // Deactivated accounts are prohibited from authenticating
+            if (user.Status != Backend.Modules.Identity.Enums.UserStatus.Active)
             {
                 return null;
             }
@@ -209,6 +219,9 @@ namespace Backend.Modules.Identity.Services
                 new Claim(JwtRegisteredClaimNames.Email, user.Email),
                 new Claim(ClaimTypes.Email, user.Email),
                 new Claim(ClaimTypes.Name, user.Username),
+                new Claim(ClaimTypes.Role, user.AccountType.ToString()),
+                new Claim("account_type", user.AccountType.ToString()),
+                new Claim("sec_stamp", user.SecurityStamp),
                 new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
             };
 

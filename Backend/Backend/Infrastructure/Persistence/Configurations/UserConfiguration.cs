@@ -29,6 +29,31 @@ namespace Backend.Infrastructure.Persistence.Configurations
             builder.Property(u => u.TenantId)
                 .IsRequired(false);
 
+            builder.Property(u => u.AccountType)
+                .IsRequired()
+                .HasDefaultValue(Backend.Modules.Identity.Enums.AccountType.IAM);
+
+            builder.Property(u => u.Status)
+                .IsRequired()
+                .HasDefaultValue(Backend.Modules.Identity.Enums.UserStatus.Active);
+
+            builder.Property(u => u.SecurityStamp)
+                .IsRequired()
+                .HasMaxLength(36);
+
+            builder.Property(u => u.CreatedAt)
+                .IsRequired();
+
+            builder.Property(u => u.UpdatedAt)
+                .IsRequired(false);
+
+            builder.Property(u => u.RootTenantId)
+                .IsRequired(false)
+                .ValueGeneratedOnAddOrUpdate();
+
+            builder.HasIndex(u => u.RootTenantId)
+                .IsUnique();
+
             builder.HasOne(u => u.Tenant)
                 .WithMany(t => t.Users)
                 .HasForeignKey(u => u.TenantId)
