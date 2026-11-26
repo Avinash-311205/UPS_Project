@@ -17,12 +17,16 @@ import {
 import StatusBadge from '../components/StatusBadge'
 import Modal from '../components/Modal'
 import { LoadingSpinner, ErrorBanner } from '../components/CommonStates'
+import type { AuthUser } from '../auth/session'
+import { canManageSystems } from '../auth/permissions'
 
 interface SystemsPageProps {
+  user?: AuthUser
   onNavigate: (page: Page, systemId?: string) => void
 }
 
-export default function SystemsPage({ onNavigate }: SystemsPageProps) {
+export default function SystemsPage({ user, onNavigate }: SystemsPageProps) {
+  const canManage = user ? canManageSystems(user) : true
   const [systems, setSystems] = useState<LogisticsSystemResponseDTO[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -204,13 +208,30 @@ export default function SystemsPage({ onNavigate }: SystemsPageProps) {
           </p>
         </div>
 
-        <button
-          type="button"
-          className="ed-button ed-button-primary"
-          onClick={handleOpenRegister}
-        >
-          [ + REGISTER NEW SYSTEM ]
-        </button>
+        {canManage ? (
+          <button
+            type="button"
+            className="ed-button ed-button-primary"
+            onClick={handleOpenRegister}
+          >
+            [ + REGISTER NEW SYSTEM ]
+          </button>
+        ) : (
+          <div
+            style={{
+              padding: '6px 12px',
+              border: '1px solid var(--ed-border)',
+              background: 'var(--ed-surface)',
+              fontFamily: 'var(--ed-font-mono)',
+              fontSize: '11px',
+              color: 'var(--ed-text-muted)',
+              display: 'flex',
+              alignItems: 'center',
+            }}
+          >
+            [ READ-ONLY OPERATIONAL ACCESS ]
+          </div>
+        )}
       </div>
 
       {actionSuccess && (
@@ -233,13 +254,15 @@ export default function SystemsPage({ onNavigate }: SystemsPageProps) {
           <p className="cc-empty-desc">
             No logistics systems or infrastructure nodes have been provisioned in this tenant yet. Register your primary logistics node (TMS, WMS, ERP, EDI Gateway, Fleet Telematics) to initialize the dependency intelligence graph.
           </p>
-          <button
-            type="button"
-            className="ed-button ed-button-primary"
-            onClick={handleOpenRegister}
-          >
-            [ + REGISTER INITIAL SYSTEM ]
-          </button>
+          {canManage && (
+            <button
+              type="button"
+              className="ed-button ed-button-primary"
+              onClick={handleOpenRegister}
+            >
+              [ + REGISTER INITIAL SYSTEM ]
+            </button>
+          )}
         </div>
       ) : (
         <>
@@ -323,13 +346,15 @@ export default function SystemsPage({ onNavigate }: SystemsPageProps) {
                   >
                     [ BLAST RADIUS → ]
                   </button>
-                  <button
-                    type="button"
-                    className="ed-button ed-button-sm"
-                    onClick={() => handleOpenEdit(selectedSystemForDetails)}
-                  >
-                    [ EDIT ]
-                  </button>
+                  {canManage && (
+                    <button
+                      type="button"
+                      className="ed-button ed-button-sm"
+                      onClick={() => handleOpenEdit(selectedSystemForDetails)}
+                    >
+                      [ EDIT ]
+                    </button>
+                  )}
                   <button
                     type="button"
                     className="ed-button ed-button-sm"
@@ -494,23 +519,27 @@ export default function SystemsPage({ onNavigate }: SystemsPageProps) {
                           >
                             [ BLAST RADIUS → ]
                           </button>
-                          <button
-                            type="button"
-                            className="ed-button ed-button-sm"
-                            onClick={() => handleOpenEdit(sys)}
-                            title="Edit metadata"
-                          >
-                            [ EDIT ]
-                          </button>
-                          {sys.lifecycleStatus === SystemLifecycleStatus.Active && (
-                            <button
-                              type="button"
-                              className="ed-button ed-button-sm ed-button-danger"
-                              onClick={() => setDeactivatingId(sys.id)}
-                              title="Soft deactivate node"
-                            >
-                              [ DEACTIVATE ]
-                            </button>
+                          {canManage && (
+                            <>
+                              <button
+                                type="button"
+                                className="ed-button ed-button-sm"
+                                onClick={() => handleOpenEdit(sys)}
+                                title="Edit metadata"
+                              >
+                                [ EDIT ]
+                              </button>
+                              {sys.lifecycleStatus === SystemLifecycleStatus.Active && (
+                                <button
+                                  type="button"
+                                  className="ed-button ed-button-sm ed-button-danger"
+                                  onClick={() => setDeactivatingId(sys.id)}
+                                  title="Soft deactivate node"
+                                >
+                                  [ DEACTIVATE ]
+                                </button>
+                              )}
+                            </>
                           )}
                         </div>
                       </td>

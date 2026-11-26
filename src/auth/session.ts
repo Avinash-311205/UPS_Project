@@ -8,6 +8,9 @@ export type AuthUser = {
   role: UserRole
   accountType: 'Root' | 'IAM'
   tenantId?: string | null
+  roleId?: number | null
+  roleCode?: string | null
+  roleName?: string | null
 }
 
 export const roleLabels: Record<UserRole, string> = {

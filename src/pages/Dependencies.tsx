@@ -16,12 +16,16 @@ import {
 import StatusBadge from '../components/StatusBadge'
 import Modal from '../components/Modal'
 import { LoadingSpinner, ErrorBanner } from '../components/CommonStates'
+import type { AuthUser } from '../auth/session'
+import { canManageDependencies } from '../auth/permissions'
 
 interface DependenciesPageProps {
+  user?: AuthUser
   onNavigate: (page: Page, systemId?: string) => void
 }
 
-export default function DependenciesPage({ onNavigate }: DependenciesPageProps) {
+export default function DependenciesPage({ user, onNavigate }: DependenciesPageProps) {
+  const canManage = user ? canManageDependencies(user) : true
   const [dependencies, setDependencies] = useState<SystemDependencyResponseDTO[]>([])
   const [systems, setSystems] = useState<LogisticsSystemResponseDTO[]>([])
   const [loading, setLoading] = useState(true)
@@ -255,15 +259,32 @@ export default function DependenciesPage({ onNavigate }: DependenciesPageProps) 
             </button>
           </div>
 
-          <button
-            type="button"
-            className="ed-button ed-button-primary"
-            onClick={handleOpenAdd}
-            disabled={activeSystems.length < 2}
-            title={activeSystems.length < 2 ? 'At least 2 active systems required' : undefined}
-          >
-            [ + MAP DEPENDENCY ]
-          </button>
+          {canManage ? (
+            <button
+              type="button"
+              className="ed-button ed-button-primary"
+              onClick={handleOpenAdd}
+              disabled={activeSystems.length < 2}
+              title={activeSystems.length < 2 ? 'At least 2 active systems required' : undefined}
+            >
+              [ + MAP DEPENDENCY ]
+            </button>
+          ) : (
+            <div
+              style={{
+                padding: '6px 12px',
+                border: '1px solid var(--ed-border)',
+                background: 'var(--ed-surface)',
+                fontFamily: 'var(--ed-font-mono)',
+                fontSize: '11px',
+                color: 'var(--ed-text-muted)',
+                display: 'flex',
+                alignItems: 'center',
+              }}
+            >
+              [ READ-ONLY OPERATIONAL ACCESS ]
+            </div>
+          )}
         </div>
       </div>
 
@@ -538,22 +559,24 @@ export default function DependenciesPage({ onNavigate }: DependenciesPageProps) 
                     [ SIMULATE PROVIDER OUTAGE → ]
                   </button>
 
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
-                    <button
-                      type="button"
-                      className="ed-button"
-                      onClick={() => handleOpenEdit(selectedDep)}
-                    >
-                      [ EDIT EDGE ]
-                    </button>
-                    <button
-                      type="button"
-                      className="ed-button ed-button-danger"
-                      onClick={() => setDeletingId(selectedDep.id)}
-                    >
-                      [ DELETE ]
-                    </button>
-                  </div>
+                  {canManage && (
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+                      <button
+                        type="button"
+                        className="ed-button"
+                        onClick={() => handleOpenEdit(selectedDep)}
+                      >
+                        [ EDIT EDGE ]
+                      </button>
+                      <button
+                        type="button"
+                        className="ed-button ed-button-danger"
+                        onClick={() => setDeletingId(selectedDep.id)}
+                      >
+                        [ DELETE ]
+                      </button>
+                    </div>
+                  )}
                 </div>
               </>
             ) : selectedSystem ? (
@@ -654,20 +677,24 @@ export default function DependenciesPage({ onNavigate }: DependenciesPageProps) 
                       >
                         [ BLAST RADIUS → ]
                       </button>
-                      <button
-                        type="button"
-                        className="ed-button ed-button-sm"
-                        onClick={() => handleOpenEdit(dep)}
-                      >
-                        [ EDIT ]
-                      </button>
-                      <button
-                        type="button"
-                        className="ed-button ed-button-sm ed-button-danger"
-                        onClick={() => setDeletingId(dep.id)}
-                      >
-                        [ DELETE ]
-                      </button>
+                      {canManage && (
+                        <>
+                          <button
+                            type="button"
+                            className="ed-button ed-button-sm"
+                            onClick={() => handleOpenEdit(dep)}
+                          >
+                            [ EDIT ]
+                          </button>
+                          <button
+                            type="button"
+                            className="ed-button ed-button-sm ed-button-danger"
+                            onClick={() => setDeletingId(dep.id)}
+                          >
+                            [ DELETE ]
+                          </button>
+                        </>
+                      )}
                     </div>
                   </td>
                 </tr>

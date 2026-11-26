@@ -344,6 +344,7 @@ export interface IncidentResponseDTO {
   incidentType: IncidentType
   severity: IncidentSeverity
   status: IncidentStatus
+  concurrencyVersion: number
   detectedAt: string
   createdAt: string
   updatedAt?: string | null
@@ -364,11 +365,32 @@ export interface UpdateIncidentDTO {
   description?: string
   incidentType: IncidentType
   severity: IncidentSeverity
+  expectedVersion?: number
 }
 
 export interface UpdateIncidentStatusDTO {
   status: IncidentStatus
   resolutionNotes?: string
+  expectedVersion?: number
+}
+
+export interface AddIncidentNoteDTO {
+  note: string
+  expectedVersion?: number
+}
+
+export interface IncidentAuditLogResponseDTO {
+  id: number
+  incidentId: string
+  action: string
+  oldValuesJson?: string | null
+  newValuesJson?: string | null
+  notes?: string | null
+  actorUserId: number
+  actorEmail: string
+  actorAccountType: string
+  actorRoleCode: string
+  timestamp: string
 }
 
 // Impact Analysis & Graph
@@ -462,6 +484,34 @@ export const userStatusLabels: Record<UserStatus, string> = {
   [UserStatus.Inactive]: 'Inactive',
 }
 
+export const RoleCodes = {
+  Admin: 'ADMIN',
+  HubOperator: 'HUB_OPERATOR',
+  SecurityManager: 'SECURITY_MANAGER',
+  Unassigned: 'UNASSIGNED',
+} as const
+export type RoleCode = (typeof RoleCodes)[keyof typeof RoleCodes]
+
+export const roleCodeLabels: Record<RoleCode, string> = {
+  ADMIN: 'Admin',
+  HUB_OPERATOR: 'Hub Operator',
+  SECURITY_MANAGER: 'Security Manager',
+  UNASSIGNED: 'Unassigned',
+}
+
+export interface RoleResponseDTO {
+  id: number
+  name: string
+  normalizedName: string
+  roleCode?: string
+  description?: string | null
+}
+
+export interface AssignIamUserRoleDTO {
+  roleId?: number | null
+  roleCode?: string | null
+}
+
 export interface IamUserResponseDTO {
   id: number
   username: string
@@ -469,6 +519,9 @@ export interface IamUserResponseDTO {
   tenantId: string | null
   accountType: AccountType
   status: UserStatus
+  roleId?: number | null
+  roleCode?: string | null
+  roleName?: string | null
   createdAt: string
   updatedAt?: string | null
 }

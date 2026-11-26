@@ -17,7 +17,14 @@ export default function App() {
   const [error, setError] = useState('')
   const [successMessage, setSuccessMessage] = useState('')
 
-  const finishLogin = (token: string, loginEmail: string, loginUsername?: string) => {
+  const finishLogin = (
+    token: string,
+    loginEmail: string,
+    loginUsername?: string,
+    roleId?: number | null,
+    roleCode?: string | null,
+    roleName?: string | null
+  ) => {
     const jwtPayload = parseJwtPayload(token)
     const resolvedName =
       loginUsername ||
@@ -31,6 +38,30 @@ export default function App() {
     const accountType: 'Root' | 'IAM' = rawRole === 'Root' ? 'Root' : 'IAM'
     const tenantId = (jwtPayload?.['tenant_id'] as string) || null
 
+    const resolvedRoleCode =
+      accountType === 'Root'
+        ? null
+        : (roleCode || (jwtPayload?.['operational_role'] as string) || 'UNASSIGNED')
+    const resolvedRoleId =
+      accountType === 'Root'
+        ? null
+        : (roleId !== undefined && roleId !== null
+            ? roleId
+            : jwtPayload?.['role_id']
+            ? Number(jwtPayload['role_id'])
+            : null)
+    const resolvedRoleName =
+      accountType === 'Root'
+        ? null
+        : roleName ||
+          (resolvedRoleCode === 'ADMIN'
+            ? 'Admin'
+            : resolvedRoleCode === 'HUB_OPERATOR'
+            ? 'Hub Operator'
+            : resolvedRoleCode === 'SECURITY_MANAGER'
+            ? 'Security Manager'
+            : 'Unassigned')
+
     const authenticatedUser: AuthUser = {
       id: String(jwtPayload?.['sub'] || loginEmail),
       employeeId: loginEmail,
@@ -39,6 +70,9 @@ export default function App() {
       role: 'operations-manager',
       accountType,
       tenantId,
+      roleId: resolvedRoleId,
+      roleCode: resolvedRoleCode,
+      roleName: resolvedRoleName,
     }
 
     saveSession(authenticatedUser, token)
@@ -69,7 +103,14 @@ export default function App() {
           return
         }
 
-        finishLogin(loginRes.data.token, loginRes.data.email, loginRes.data.username)
+        finishLogin(
+          loginRes.data.token,
+          loginRes.data.email,
+          loginRes.data.username,
+          loginRes.data.roleId,
+          loginRes.data.roleCode,
+          loginRes.data.roleName
+        )
       }
     } catch (requestError) {
       setError(requestError instanceof Error ? requestError.message : 'Unable to reach the authentication service.')
@@ -89,7 +130,14 @@ export default function App() {
         return
       }
 
-      finishLogin(loginRes.data.token, loginRes.data.email, loginRes.data.username)
+      finishLogin(
+        loginRes.data.token,
+        loginRes.data.email,
+        loginRes.data.username,
+        loginRes.data.roleId,
+        loginRes.data.roleCode,
+        loginRes.data.roleName
+      )
     } catch (requestError) {
       setError(requestError instanceof Error ? requestError.message : 'Unable to reach the authentication service.')
     } finally {

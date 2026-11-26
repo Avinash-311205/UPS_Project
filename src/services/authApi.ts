@@ -10,6 +10,9 @@ export interface LoginResult {
   username: string
   accountType?: number
   status?: number
+  roleId?: number | null
+  roleCode?: string | null
+  roleName?: string | null
 }
 
 export interface RegisterResult {

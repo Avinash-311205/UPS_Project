@@ -18,12 +18,16 @@ import {
 import StatusBadge from '../components/StatusBadge'
 import Modal from '../components/Modal'
 import { LoadingSpinner, ErrorBanner, EmptyState } from '../components/CommonStates'
+import type { AuthUser } from '../auth/session'
+import { canManageOperations } from '../auth/permissions'
 
 interface BusinessOperationsPageProps {
+  user?: AuthUser
   onNavigate: (page: Page, systemId?: string) => void
 }
 
-export default function BusinessOperationsPage({ onNavigate: _onNavigate }: BusinessOperationsPageProps) {
+export default function BusinessOperationsPage({ user, onNavigate: _onNavigate }: BusinessOperationsPageProps) {
+  const canManage = user ? canManageOperations(user) : true
   const [operations, setOperations] = useState<BusinessOperationResponseDTO[]>([])
   const [systems, setSystems] = useState<LogisticsSystemResponseDTO[]>([])
   const [loading, setLoading] = useState(true)
@@ -251,14 +255,31 @@ export default function BusinessOperationsPage({ onNavigate: _onNavigate }: Busi
           </p>
         </div>
 
-        <button
-          type="button"
-          className="ed-action-link"
-          style={{ fontSize: '11px', letterSpacing: '0.1em' }}
-          onClick={handleOpenCreate}
-        >
-          [ + DEFINE OPERATION ]
-        </button>
+        {canManage ? (
+          <button
+            type="button"
+            className="ed-action-link"
+            style={{ fontSize: '11px', letterSpacing: '0.1em' }}
+            onClick={handleOpenCreate}
+          >
+            [ + DEFINE OPERATION ]
+          </button>
+        ) : (
+          <div
+            style={{
+              padding: '6px 12px',
+              border: '1px solid var(--ed-border)',
+              background: 'var(--ed-surface)',
+              fontFamily: 'var(--ed-font-mono)',
+              fontSize: '11px',
+              color: 'var(--ed-text-muted)',
+              display: 'flex',
+              alignItems: 'center',
+            }}
+          >
+            [ READ-ONLY OPERATIONAL ACCESS ]
+          </div>
+        )}
       </div>
 
       {actionSuccess && (
@@ -379,13 +400,15 @@ export default function BusinessOperationsPage({ onNavigate: _onNavigate }: Busi
           title="NO BUSINESS OPERATIONS REGISTERED"
           description="Define business operations and map their supporting systems to enable Impact Analysis scoring."
           action={
-            <button
-              type="button"
-              className="ed-action-link"
-              onClick={handleOpenCreate}
-            >
-              [ + DEFINE FIRST OPERATION ]
-            </button>
+            canManage ? (
+              <button
+                type="button"
+                className="ed-action-link"
+                onClick={handleOpenCreate}
+              >
+                [ + DEFINE FIRST OPERATION ]
+              </button>
+            ) : undefined
           }
         />
       ) : (
@@ -450,23 +473,31 @@ export default function BusinessOperationsPage({ onNavigate: _onNavigate }: Busi
 
                 {/* Actions */}
                 <div style={{ textAlign: 'right', display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
-                  <button
-                    type="button"
-                    className="ed-action-link"
-                    style={{ fontSize: '11px' }}
-                    onClick={() => handleOpenEdit(op)}
-                  >
-                    [EDIT]
-                  </button>
-                  {op.lifecycleStatus === OperationLifecycleStatus.Active && (
-                    <button
-                      type="button"
-                      className="ed-action-link"
-                      style={{ fontSize: '11px', color: 'var(--ed-amber)' }}
-                      onClick={() => setDeactivatingId(op.id)}
-                    >
-                      [DEACTIVATE]
-                    </button>
+                  {canManage ? (
+                    <>
+                      <button
+                        type="button"
+                        className="ed-action-link"
+                        style={{ fontSize: '11px' }}
+                        onClick={() => handleOpenEdit(op)}
+                      >
+                        [EDIT]
+                      </button>
+                      {op.lifecycleStatus === OperationLifecycleStatus.Active && (
+                        <button
+                          type="button"
+                          className="ed-action-link"
+                          style={{ fontSize: '11px', color: 'var(--ed-amber)' }}
+                          onClick={() => setDeactivatingId(op.id)}
+                        >
+                          [DEACTIVATE]
+                        </button>
+                      )}
+                    </>
+                  ) : (
+                    <span style={{ fontSize: '10px', color: 'var(--ed-text-muted)', fontFamily: 'var(--ed-font-mono)' }}>
+                      [READ-ONLY]
+                    </span>
                   )}
                 </div>
               </div>
@@ -689,14 +720,16 @@ export default function BusinessOperationsPage({ onNavigate: _onNavigate }: Busi
                       </span>
                     </div>
 
-                    <button
-                      type="button"
-                      className="cc-button cc-button-sm cc-button-danger"
-                      disabled={submitting}
-                      onClick={() => handleRemoveAssignedSystem(item.logisticsSystemId)}
-                    >
-                      [ UNASSIGN ]
-                    </button>
+                    {canManage && (
+                      <button
+                        type="button"
+                        className="cc-button cc-button-sm cc-button-danger"
+                        disabled={submitting}
+                        onClick={() => handleRemoveAssignedSystem(item.logisticsSystemId)}
+                      >
+                        [ UNASSIGN ]
+                      </button>
+                    )}
                   </div>
                 ))}
               </div>
@@ -704,38 +737,40 @@ export default function BusinessOperationsPage({ onNavigate: _onNavigate }: Busi
           </div>
 
           {/* Assign New System Section */}
-          <div style={{ borderTop: '1px solid var(--cc-border)', paddingTop: '16px' }}>
-            <span className="cc-form-label">ASSIGN ADDITIONAL SUPPORTING SYSTEM:</span>
-            {unassignedSystems.length === 0 ? (
-              <div style={{ fontSize: '11px', color: '#777777', marginTop: '6px' }}>
-                All available active systems are already assigned to this operation.
-              </div>
-            ) : (
-              <div style={{ display: 'flex', gap: '8px', marginTop: '8px' }}>
-                <select
-                  className="cc-select"
-                  value={selectedSystemToAssign}
-                  onChange={(e) => setSelectedSystemToAssign(e.target.value)}
-                >
-                  <option value="">-- SELECT SYSTEM TO ASSIGN --</option>
-                  {unassignedSystems.map((s) => (
-                    <option key={s.id} value={s.id}>
-                      {s.name} ({s.environment === 3 ? 'PROD' : 'NON-PROD'})
-                    </option>
-                  ))}
-                </select>
+          {canManage && (
+            <div style={{ borderTop: '1px solid var(--cc-border)', paddingTop: '16px' }}>
+              <span className="cc-form-label">ASSIGN ADDITIONAL SUPPORTING SYSTEM:</span>
+              {unassignedSystems.length === 0 ? (
+                <div style={{ fontSize: '11px', color: '#777777', marginTop: '6px' }}>
+                  All available active systems are already assigned to this operation.
+                </div>
+              ) : (
+                <div style={{ display: 'flex', gap: '8px', marginTop: '8px' }}>
+                  <select
+                    className="cc-select"
+                    value={selectedSystemToAssign}
+                    onChange={(e) => setSelectedSystemToAssign(e.target.value)}
+                  >
+                    <option value="">-- SELECT SYSTEM TO ASSIGN --</option>
+                    {unassignedSystems.map((s) => (
+                      <option key={s.id} value={s.id}>
+                        {s.name} ({s.environment === 3 ? 'PROD' : 'NON-PROD'})
+                      </option>
+                    ))}
+                  </select>
 
-                <button
-                  type="button"
-                  className="cc-button cc-button-primary"
-                  disabled={!selectedSystemToAssign || submitting}
-                  onClick={handleAssignSystemSubmit}
-                >
-                  [ ASSIGN ]
-                </button>
-              </div>
-            )}
-          </div>
+                  <button
+                    type="button"
+                    className="cc-button cc-button-primary"
+                    disabled={submitting || !selectedSystemToAssign}
+                    onClick={handleAssignSystemSubmit}
+                  >
+                    {submitting ? 'ASSIGNING...' : '[ ASSIGN ]'}
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </Modal>
 

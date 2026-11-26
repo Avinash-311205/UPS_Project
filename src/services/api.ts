@@ -14,12 +14,33 @@ import type {
   CreateIncidentDTO,
   UpdateIncidentDTO,
   UpdateIncidentStatusDTO,
+  AddIncidentNoteDTO,
+  IncidentAuditLogResponseDTO,
   ImpactAnalysisResponseDTO,
   IamUserResponseDTO,
   CreateIamUserDTO,
   ResetIamUserPasswordDTO,
+  RoleResponseDTO,
+  AssignIamUserRoleDTO,
   UserStatus,
 } from '../types'
+
+export class ApiError extends Error {
+  status: number
+  constructor(message: string, status: number) {
+    super(message)
+    this.name = 'ApiError'
+    this.status = status
+  }
+
+  get isConflict(): boolean {
+    return this.status === 409
+  }
+
+  get isForbidden(): boolean {
+    return this.status === 403
+  }
+}
 
 const TOKEN_KEY = 'resiliencex-auth-token'
 
@@ -56,13 +77,16 @@ async function request<T>(endpoint: string, options: RequestInit = {}): Promise<
   } catch {
     // If not valid JSON, check status
     if (!response.ok) {
-      throw new Error(`Server returned error status ${response.status} (${response.statusText}).`)
+      throw new ApiError(
+        `Server returned error status ${response.status} (${response.statusText}).`,
+        response.status
+      )
     }
   }
 
   if (!response.ok) {
     const errorMsg = json?.message || `Request failed with HTTP status ${response.status}.`
-    throw new Error(errorMsg)
+    throw new ApiError(errorMsg, response.status)
   }
 
   if (!json) {
@@ -284,6 +308,25 @@ export const api = {
     return res.data
   },
 
+  async addIncidentNote(
+    incidentId: string,
+    data: AddIncidentNoteDTO
+  ): Promise<IncidentAuditLogResponseDTO> {
+    const res = await request<IncidentAuditLogResponseDTO>(`/api/incidents/${incidentId}/notes`, {
+      method: 'POST',
+      body: JSON.stringify(data),
+    })
+    if (!res.data) throw new Error(res.message || 'Failed to add investigation note')
+    return res.data
+  },
+
+  async getIncidentAuditLogs(incidentId: string): Promise<IncidentAuditLogResponseDTO[]> {
+    const res = await request<IncidentAuditLogResponseDTO[]>(
+      `/api/incidents/${incidentId}/audit-logs`
+    )
+    return res.data || []
+  },
+
   // ==========================================
   // IMPACT ANALYSIS
   // ==========================================
@@ -325,5 +368,19 @@ export const api = {
       body: JSON.stringify(data),
     })
     return res.message || 'Password reset successfully'
+  },
+
+  async assignIamUserRole(id: number, data: AssignIamUserRoleDTO): Promise<IamUserResponseDTO> {
+    const res = await request<IamUserResponseDTO>(`/api/iam/users/${id}/role`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    })
+    if (!res.data) throw new Error(res.message || 'Failed to update IAM user role')
+    return res.data
+  },
+
+  async getAvailableRoles(): Promise<RoleResponseDTO[]> {
+    const res = await request<RoleResponseDTO[]>('/api/iam/roles')
+    return res.data || []
   },
 }

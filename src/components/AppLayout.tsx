@@ -102,7 +102,15 @@ export default function AppLayout({
             <span
               className={`ed-role-tag ${user.accountType === 'Root' ? 'root' : 'iam'}`}
             >
-              {user.accountType === 'Root' ? 'ROOT' : 'IAM'}
+              {user.accountType === 'Root'
+                ? 'ROOT'
+                : user.roleCode === 'ADMIN'
+                ? 'IAM / ADMIN'
+                : user.roleCode === 'HUB_OPERATOR'
+                ? 'IAM / HUB OPERATOR'
+                : user.roleCode === 'SECURITY_MANAGER'
+                ? 'IAM / SEC MANAGER'
+                : 'IAM / UNASSIGNED'}
             </span>
             <span className="ed-user-name" title={user.email}>
               {user.name}
@@ -190,7 +198,7 @@ export default function AppLayout({
             <div className="ed-mobile-meta">
               <div>CLUSTER: US-EAST-01</div>
               <div>TENANT: {user.tenantId ? user.tenantId.slice(0, 16) + '...' : 'DEFAULT'}</div>
-              <div>OPERATOR: {user.name} ({user.accountType})</div>
+              <div>OPERATOR: {user.name} ({user.accountType === 'Root' ? 'Root' : user.roleName || user.roleCode || 'IAM'})</div>
             </div>
             <button
               type="button"

@@ -41,10 +41,10 @@ export default function DashboardApp({ user, onLogout }: DashboardAppProps) {
       onLogout={onLogout}
     >
       {currentPage === 'Overview' && <OverviewPage onNavigate={handleNavigate} />}
-      {currentPage === 'Systems' && <SystemsPage onNavigate={handleNavigate} />}
-      {currentPage === 'Dependencies' && <DependenciesPage onNavigate={handleNavigate} />}
-      {currentPage === 'Operations' && <BusinessOperationsPage onNavigate={handleNavigate} />}
-      {currentPage === 'Incidents' && <IncidentsPage onNavigate={handleNavigate} />}
+      {currentPage === 'Systems' && <SystemsPage user={user} onNavigate={handleNavigate} />}
+      {currentPage === 'Dependencies' && <DependenciesPage user={user} onNavigate={handleNavigate} />}
+      {currentPage === 'Operations' && <BusinessOperationsPage user={user} onNavigate={handleNavigate} />}
+      {currentPage === 'Incidents' && <IncidentsPage user={user} onNavigate={handleNavigate} />}
       {currentPage === 'ImpactAnalysis' && (
         <ImpactAnalysisPage
           initialSystemId={navigationParam}
@@ -52,7 +52,7 @@ export default function DashboardApp({ user, onLogout }: DashboardAppProps) {
         />
       )}
       {currentPage === 'IamManagement' && (
-        <IamManagementPage user={user} onNavigate={handleNavigate} />
+        <IamManagementPage user={user} onNavigate={handleNavigate} onLogout={onLogout} />
       )}
     </AppLayout>
   )

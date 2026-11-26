@@ -4,6 +4,7 @@ import type {
   Page,
   IamUserResponseDTO,
   CreateIamUserDTO,
+  RoleResponseDTO,
 } from '../types'
 import { UserStatus } from '../types'
 import type { AuthUser } from '../auth/session'
@@ -13,13 +14,23 @@ import { LoadingSpinner, ErrorBanner, EmptyState } from '../components/CommonSta
 interface IamManagementPageProps {
   user: AuthUser
   onNavigate: (page: Page) => void
+  onLogout?: () => void
 }
 
-export default function IamManagementPage({ user, onNavigate }: IamManagementPageProps) {
+export default function IamManagementPage({ user, onNavigate, onLogout }: IamManagementPageProps) {
   const [iamUsers, setIamUsers] = useState<IamUserResponseDTO[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [successMessage, setSuccessMessage] = useState<string | null>(null)
+
+  const handleLogout = () => {
+    if (onLogout) {
+      onLogout()
+    } else {
+      window.sessionStorage.clear()
+      window.location.reload()
+    }
+  }
 
   // Filters
   const [searchTerm, setSearchTerm] = useState('')
@@ -45,14 +56,25 @@ export default function IamManagementPage({ user, onNavigate }: IamManagementPag
   const [resetError, setResetError] = useState<string | null>(null)
   const [resetSubmitting, setResetSubmitting] = useState(false)
 
+  // Role Assignment Modal State
+  const [roleTargetUser, setRoleTargetUser] = useState<IamUserResponseDTO | null>(null)
+  const [availableRoles, setAvailableRoles] = useState<RoleResponseDTO[]>([])
+  const [selectedRoleId, setSelectedRoleId] = useState<number>(0)
+  const [roleError, setRoleError] = useState<string | null>(null)
+  const [roleSubmitting, setRoleSubmitting] = useState(false)
+
   const isRoot = user.accountType === 'Root'
 
   const loadUsers = useCallback(async () => {
     if (!isRoot) return
     try {
       setLoading(true)
-      const data = await api.getIamUsers()
-      setIamUsers(data)
+      const [userData, rolesData] = await Promise.all([
+        api.getIamUsers(),
+        api.getAvailableRoles().catch(() => [] as RoleResponseDTO[]),
+      ])
+      setIamUsers(userData)
+      setAvailableRoles(rolesData)
       setError(null)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to retrieve IAM workforce directory.')
@@ -178,6 +200,56 @@ export default function IamManagementPage({ user, onNavigate }: IamManagementPag
     }
   }
 
+  // Handle Operational Role Assignment
+  const handleRoleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!roleTargetUser) return
+    setRoleSubmitting(true)
+    setRoleError(null)
+
+    try {
+      const selectedRole = availableRoles.find((r) => r.id === selectedRoleId)
+      const roleIdToSend = selectedRoleId > 0 ? selectedRoleId : null
+      const roleCodeToSend = selectedRole
+        ? (selectedRole.normalizedName || selectedRole.roleCode)
+        : selectedRoleId === 1
+        ? 'ADMIN'
+        : selectedRoleId === 2
+        ? 'HUB_OPERATOR'
+        : selectedRoleId === 3
+        ? 'SECURITY_MANAGER'
+        : selectedRoleId === 0
+        ? 'UNASSIGNED'
+        : undefined
+
+      const updated = await api.assignIamUserRole(roleTargetUser.id, {
+        roleId: roleIdToSend,
+        roleCode: roleCodeToSend,
+      })
+
+      setIamUsers((prev) => prev.map((u) => (u.id === updated.id ? updated : u)))
+      const prevTarget = roleTargetUser
+      setRoleTargetUser(null)
+      const roleDisplayName =
+        updated.roleName ||
+        (updated.roleCode === 'ADMIN'
+          ? 'Admin'
+          : updated.roleCode === 'HUB_OPERATOR'
+          ? 'Hub Operator'
+          : updated.roleCode === 'SECURITY_MANAGER'
+          ? 'Security Manager'
+          : 'Unassigned')
+      setSuccessMessage(
+        `Operational role for '${prevTarget.username}' updated to ${roleDisplayName}. All active sessions for this user were invalidated immediately.`
+      )
+      setTimeout(() => setSuccessMessage(null), 6000)
+    } catch (err) {
+      setRoleError(err instanceof Error ? err.message : 'Failed to update operational role.')
+    } finally {
+      setRoleSubmitting(false)
+    }
+  }
+
   if (!isRoot) {
     return (
       <div className="cc-empty-state" style={{ padding: '60px 20px', textAlign: 'center' }}>
@@ -191,13 +263,24 @@ export default function IamManagementPage({ user, onNavigate }: IamManagementPag
           Identity &amp; Access Management is restricted exclusively to Organization Root Accounts. Your authenticated
           credential is an IAM User account.
         </p>
-        <button
-          type="button"
-          className="ed-action-link"
-          onClick={() => onNavigate('Overview')}
-        >
-          [ RETURN TO COMMAND OVERVIEW ]
-        </button>
+        <div style={{ display: 'flex', gap: '16px', justifyContent: 'center', flexWrap: 'wrap' }}>
+          <button
+            type="button"
+            className="ed-action-link"
+            onClick={() => onNavigate('Overview')}
+          >
+            [ RETURN TO COMMAND OVERVIEW ]
+          </button>
+          <button
+            type="button"
+            className="ed-action-link"
+            style={{ color: 'var(--ed-amber)', borderColor: 'rgba(232, 145, 60, 0.4)' }}
+            onClick={handleLogout}
+            title="Terminate session and sign out"
+          >
+            [ SIGN OUT ]
+          </button>
+        </div>
       </div>
     )
   }
@@ -214,18 +297,34 @@ export default function IamManagementPage({ user, onNavigate }: IamManagementPag
           </p>
         </div>
 
-        <button
-          type="button"
-          className="ed-action-link"
-          style={{ fontSize: '11px', letterSpacing: '0.1em' }}
-          onClick={() => {
-            setCreateForm({ username: '', email: '', password: '' })
-            setCreateError(null)
-            setIsCreateOpen(true)
-          }}
-        >
-          [ + PROVISION IAM USER ]
-        </button>
+        <div style={{ display: 'flex', gap: '12px', alignItems: 'center', flexWrap: 'wrap' }}>
+          <button
+            type="button"
+            className="ed-action-link"
+            style={{ fontSize: '11px', letterSpacing: '0.1em' }}
+            onClick={() => {
+              setCreateForm({ username: '', email: '', password: '' })
+              setCreateError(null)
+              setIsCreateOpen(true)
+            }}
+          >
+            [ + PROVISION IAM USER ]
+          </button>
+          <button
+            type="button"
+            className="ed-action-link"
+            style={{
+              fontSize: '11px',
+              letterSpacing: '0.1em',
+              color: 'var(--ed-amber)',
+              borderColor: 'rgba(232, 145, 60, 0.4)',
+            }}
+            onClick={handleLogout}
+            title="Terminate session and sign out"
+          >
+            [ SIGN OUT ]
+          </button>
+        </div>
       </div>
 
       {/* Root Authority Context Banner */}
@@ -271,7 +370,7 @@ export default function IamManagementPage({ user, onNavigate }: IamManagementPag
           </div>
         </div>
 
-        <div style={{ display: 'flex', gap: '32px', alignItems: 'center' }}>
+        <div style={{ display: 'flex', gap: '24px', alignItems: 'center', flexWrap: 'wrap' }}>
           <div>
             <div style={{ fontFamily: 'var(--ed-font-mono)', fontSize: '10px', color: 'var(--ed-text-muted)', letterSpacing: '0.08em' }}>TENANT SCOPE</div>
             <div style={{ fontFamily: 'var(--ed-font-mono)', fontSize: '12px', color: 'var(--ed-text)' }}>
@@ -284,6 +383,21 @@ export default function IamManagementPage({ user, onNavigate }: IamManagementPag
               STRICT SEC_STAMP VERIFIED
             </div>
           </div>
+          <button
+            type="button"
+            className="ed-btn ed-btn-ghost"
+            style={{
+              padding: '6px 14px',
+              fontSize: '10px',
+              letterSpacing: '0.1em',
+              color: 'var(--ed-text-secondary)',
+              borderColor: 'var(--ed-border)',
+            }}
+            onClick={handleLogout}
+            title="Terminate session and sign out"
+          >
+            [ SIGN OUT ]
+          </button>
         </div>
       </div>
 
@@ -420,9 +534,9 @@ export default function IamManagementPage({ user, onNavigate }: IamManagementPag
                 className="ed-system-row"
                 style={{
                   display: 'grid',
-                  gridTemplateColumns: '50px 2fr 2fr 100px 100px 140px 200px',
+                  gridTemplateColumns: '40px 1.5fr 1.5fr 80px 130px 80px 110px 220px',
                   alignItems: 'center',
-                  gap: '16px',
+                  gap: '12px',
                   padding: '16px 8px',
                   borderBottom: '1px solid var(--ed-border)',
                 }}
@@ -466,6 +580,75 @@ export default function IamManagementPage({ user, onNavigate }: IamManagementPag
                   </span>
                 </div>
 
+                {/* Operational Role */}
+                <div>
+                  {item.roleCode === 'ADMIN' ? (
+                    <span
+                      style={{
+                        display: 'inline-block',
+                        padding: '2px 8px',
+                        fontSize: '10px',
+                        fontWeight: 700,
+                        fontFamily: 'var(--ed-font-mono)',
+                        letterSpacing: '0.05em',
+                        background: 'rgba(232, 145, 60, 0.15)',
+                        color: 'var(--ed-amber)',
+                        border: '1px solid rgba(232, 145, 60, 0.4)',
+                      }}
+                    >
+                      ADMIN
+                    </span>
+                  ) : item.roleCode === 'HUB_OPERATOR' ? (
+                    <span
+                      style={{
+                        display: 'inline-block',
+                        padding: '2px 8px',
+                        fontSize: '10px',
+                        fontWeight: 700,
+                        fontFamily: 'var(--ed-font-mono)',
+                        letterSpacing: '0.05em',
+                        background: 'rgba(46, 107, 114, 0.15)',
+                        color: 'var(--ed-teal-light)',
+                        border: '1px solid rgba(46, 107, 114, 0.4)',
+                      }}
+                    >
+                      HUB OPERATOR
+                    </span>
+                  ) : item.roleCode === 'SECURITY_MANAGER' ? (
+                    <span
+                      style={{
+                        display: 'inline-block',
+                        padding: '2px 8px',
+                        fontSize: '10px',
+                        fontWeight: 700,
+                        fontFamily: 'var(--ed-font-mono)',
+                        letterSpacing: '0.05em',
+                        background: 'rgba(92, 133, 214, 0.15)',
+                        color: '#88aaff',
+                        border: '1px solid rgba(92, 133, 214, 0.4)',
+                      }}
+                    >
+                      SEC MANAGER
+                    </span>
+                  ) : (
+                    <span
+                      style={{
+                        display: 'inline-block',
+                        padding: '2px 8px',
+                        fontSize: '10px',
+                        fontWeight: 700,
+                        fontFamily: 'var(--ed-font-mono)',
+                        letterSpacing: '0.05em',
+                        background: 'rgba(120, 120, 120, 0.15)',
+                        color: 'var(--ed-text-muted)',
+                        border: '1px solid var(--ed-border)',
+                      }}
+                    >
+                      UNASSIGNED
+                    </span>
+                  )}
+                </div>
+
                 {/* Status */}
                 <div>
                   <span
@@ -492,6 +675,25 @@ export default function IamManagementPage({ user, onNavigate }: IamManagementPag
 
                 {/* Actions */}
                 <div style={{ textAlign: 'right', display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
+                  <button
+                    type="button"
+                    className="ed-action-link"
+                    style={{ fontSize: '11px', color: 'var(--ed-amber)' }}
+                    onClick={() => {
+                      setRoleTargetUser(item)
+                      const matchingRoleId =
+                        item.roleId ||
+                        availableRoles.find(
+                          (r) => (r.normalizedName || r.roleCode) === item.roleCode
+                        )?.id ||
+                        0
+                      setSelectedRoleId(matchingRoleId)
+                      setRoleError(null)
+                    }}
+                    title="Assign or modify operational role"
+                  >
+                    [ROLE]
+                  </button>
                   <button
                     type="button"
                     className="ed-action-link"
@@ -668,6 +870,91 @@ export default function IamManagementPage({ user, onNavigate }: IamManagementPag
             <div style={{ fontSize: '10px', color: 'var(--cc-text-muted)', fontFamily: 'var(--cc-font-mono)', marginTop: '4px' }}>
               Minimum 8 characters. Resetting will immediately regenerate SecurityStamp and invalidate all current JWT tokens for this user.
             </div>
+          </div>
+        </form>
+      </Modal>
+
+      {/* Assign Operational Role Modal */}
+      <Modal
+        isOpen={roleTargetUser !== null}
+        title={`ASSIGN OPERATIONAL ROLE: ${roleTargetUser?.username || ''}`}
+        onClose={() => setRoleTargetUser(null)}
+        footer={
+          <>
+            <button
+              type="button"
+              className="cc-button"
+              onClick={() => setRoleTargetUser(null)}
+            >
+              [ CANCEL ]
+            </button>
+            <button
+              type="button"
+              className="cc-button cc-button-primary"
+              disabled={roleSubmitting}
+              onClick={handleRoleSubmit}
+            >
+              {roleSubmitting ? 'UPDATING ROLE...' : '[ COMMIT ROLE ASSIGNMENT ]'}
+            </button>
+          </>
+        }
+      >
+        <form onSubmit={handleRoleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+          {roleError && <div className="cc-form-error">[ROLE ASSIGNMENT ERROR] {roleError}</div>}
+
+          <div
+            style={{
+              padding: '12px 14px',
+              border: '1px solid rgba(232, 145, 60, 0.4)',
+              background: 'rgba(232, 145, 60, 0.08)',
+              fontSize: '12px',
+              color: 'var(--ed-text)',
+              lineHeight: 1.5,
+            }}
+          >
+            <strong style={{ color: 'var(--ed-amber)' }}>[SECURITY PROTOCOL NOTICE]</strong>
+            <br />
+            Changing or unassigning an operational role will immediately rotate this user's{' '}
+            <code>SecurityStamp</code> in the database. Any active bearer tokens or browser sessions for{' '}
+            <strong>'{roleTargetUser?.username}'</strong> will be revoked on their next request.
+          </div>
+
+          <div className="cc-form-group">
+            <label className="cc-form-label">TARGET IAM USER</label>
+            <div style={{ fontFamily: 'var(--ed-font-mono)', fontSize: '13px', color: 'var(--ed-text)' }}>
+              {roleTargetUser?.username} ({roleTargetUser?.email})
+            </div>
+          </div>
+
+          <div className="cc-form-group">
+            <label className="cc-form-label">OPERATIONAL ROLE *</label>
+            <select
+              className="cc-select"
+              value={selectedRoleId}
+              onChange={(e) => setSelectedRoleId(Number(e.target.value))}
+            >
+              <option value={0}>Unassigned (Zero Operational Permissions)</option>
+              {availableRoles.length > 0 ? (
+                availableRoles.map((r) => {
+                  const code = r.normalizedName || r.roleCode || ''
+                  return (
+                    <option key={r.id} value={r.id}>
+                      {r.name} ({code}) — {r.description}
+                    </option>
+                  )
+                })
+              ) : (
+                <>
+                  <option value={1}>Admin (ADMIN) — Operational administrator for logistics systems, dependencies, and business operations.</option>
+                  <option value={2}>Hub Operator (HUB_OPERATOR) — Operational monitoring, impact analysis, and frontline incident response.</option>
+                  <option value={3}>Security Manager (SECURITY_MANAGER) — Investigation notes, diagnostic logging, and compliance oversight.</option>
+                </>
+              )}
+            </select>
+          </div>
+
+          <div style={{ fontSize: '11px', color: 'var(--ed-text-muted)', fontFamily: 'var(--ed-font-mono)' }}>
+            CURRENT ROLE: <span style={{ color: 'var(--ed-text)', fontWeight: 700 }}>{roleTargetUser?.roleName || roleTargetUser?.roleCode || 'UNASSIGNED'}</span>
           </div>
         </form>
       </Modal>
