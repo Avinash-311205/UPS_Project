@@ -1,76 +1,90 @@
 /* ==========================================================================
-   RESILIENCEX — GLOBAL DESIGN TOKENS & BASE RESETS
-   Theme: Industrial Matte Black / Swiss-Grid Editorial Aesthetic
+   RESILIENCEX — DARK CINEMATIC OPERATIONAL INTELLIGENCE PLATFORM
+   Design Language: Dark Cinematic Editorial
+   Palette:
+     Primary Background:   #0A0C0E
+     Secondary Background: #101317
+     Elevated Surface:     #151A1E
+     Primary Typography:   #EDE7DC (Warm Bone)
+     Secondary Typography: #9EA5A8
+     Muted Typography:     #6C7378
+     Amber Accent:         #E8913C
+     Teal Accent:          #2E6B72
+     Hairline Border:      rgba(237, 231, 220, 0.13)
+     Restrained Crimson:   #DC2626
    ========================================================================== */
 
 :root {
-  /* 1. Primary Matte Black Background Tokens */
-  --bg-matte: #080807;
-  --bg-primary: #080807;
-  --bg-secondary: #0E0E0D;
-  --bg-surface: #141413;
-  --bg-surface-elevated: #1B1B1A;
-  --bg-hover: #222221;
-  --page-bg: #080807;
-  --surface: #141413;
+  /* 1. Core Surfaces & Backgrounds */
+  --bg-page: #0A0C0E;
+  --bg-primary: #0A0C0E;
+  --bg-secondary: #101317;
+  --bg-surface: #151A1E;
+  --bg-surface-elevated: #1B2127;
+  --bg-hover: #1E252C;
+  --bg-inverse: #EDE7DC;
+  --surface: #151A1E;
 
-  /* 2. High-Contrast Typography */
-  --text-primary: #FDFDFD;
-  --text-secondary: #989798;
-  --text-muted: #666767;
-  --text-inverse: #080807;
-  --ink: #FDFDFD;
-  --muted: #989798;
+  /* 2. Cinematic Typography */
+  --text-primary: #EDE7DC;
+  --text-secondary: #9EA5A8;
+  --text-muted: #6C7378;
+  --text-inverse: #0A0C0E;
+  --ink: #EDE7DC;
+  --muted: #6C7378;
 
-  /* 3. Hairline Dividers & Grid Borders */
-  --border-hairline: #1F1F1E;
-  --border-default: #262626;
-  --border-subtle: #1C1C1B;
-  --border-strong: #383837;
-  --border-focus: #9F6B0A;
+  /* 3. Hairline Dividers & Structural Borders */
+  --border-hairline: rgba(237, 231, 220, 0.13);
+  --border-default: rgba(237, 231, 220, 0.13);
+  --border-subtle: rgba(237, 231, 220, 0.08);
+  --border-strong: rgba(237, 231, 220, 0.28);
+  --border-focus: #E8913C;
 
-  /* 4. Industrial Brand & Accents */
-  --brand-amber: #9F6B0A;
-  --brand-amber-light: #F59E0B;
-  --brand-amber-glow: rgba(159, 107, 10, 0.25);
-  --accent: #9F6B0A;
-  --accent-beige: #D4C7B6;
+  /* 4. Brand & Restrained Accent Tokens */
+  --accent-amber: #E8913C;
+  --accent-teal: #2E6B72;
+  --brand-black: #0A0C0E;
+  --brand-bone: #EDE7DC;
 
-  /* 5. Restrained Semantic Status Tokens */
-  --status-green: #10B981;
-  --status-green-bg: #0C1E14;
-  --status-green-border: #1B452D;
-  --status-green-text: #34D399;
+  /* 5. Semantic Status Tokens (Teal, Amber, Crimson, Grey) */
+  --status-teal: #2E6B72;
+  --status-teal-bg: rgba(46, 107, 114, 0.12);
+  --status-teal-border: rgba(46, 107, 114, 0.4);
+  --status-teal-text: #53B7C2;
 
-  --status-amber: #F59E0B;
-  --status-amber-bg: #221A0C;
-  --status-amber-border: #4D3815;
-  --status-amber-text: #FBBF24;
+  --status-amber: #E8913C;
+  --status-amber-bg: rgba(232, 145, 60, 0.12);
+  --status-amber-border: rgba(232, 145, 60, 0.4);
+  --status-amber-text: #F3A85C;
 
-  --status-red: #EF4444;
-  --status-red-bg: #240F11;
-  --status-red-border: #521E23;
+  --status-red: #DC2626;
+  --status-red-bg: rgba(220, 38, 38, 0.12);
+  --status-red-border: rgba(220, 38, 38, 0.4);
   --status-red-text: #F87171;
 
-  --status-cyan: #38BDF8;
-  --status-cyan-bg: #0C1D29;
-  --status-cyan-border: #1A3E56;
-  --status-cyan-text: #7DD3FC;
+  --status-neutral: #6C7378;
+  --status-neutral-bg: rgba(108, 115, 120, 0.12);
+  --status-neutral-border: rgba(108, 115, 120, 0.3);
+  --status-neutral-text: #9EA5A8;
 
   /* 6. Typography Stacks */
-  --font-sans: 'Plus Jakarta Sans', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  --font-mono: 'JetBrains Mono', 'Space Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  --font-display: 'Syne', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-sans: 'Sora', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
 
-  /* 7. Sharp Geometry Tokens */
+  /* 7. Strict Zero-Radius Geometry */
   --radius-sharp: 0px;
-  --radius-subtle: 2px;
+  --radius-subtle: 0px;
   --radius-sm: 0px;
   --radius-md: 0px;
   --radius-lg: 0px;
   --radius-xl: 0px;
-  --radius-full: 2px;
+  --radius-full: 0px;
 
-  /* 8. Spacing Grid */
+  /* 8. Zero Drop Shadows */
+  --shadow-none: none;
+
+  /* 9. Spacing Grid */
   --space-1: 4px;
   --space-2: 8px;
   --space-3: 12px;
@@ -78,22 +92,28 @@
   --space-5: 20px;
   --space-6: 24px;
   --space-8: 32px;
+  --space-12: 48px;
 
-  /* 9. Transitions */
+  /* 10. Motion Transitions */
   --transition-fast: 0.12s ease;
-  --transition-normal: 0.2s ease;
+  --transition-normal: 0.22s ease;
+  --transition-smooth: 0.35s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 *,
 *::before,
 *::after {
   box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  border-radius: 0 !important;
+  box-shadow: none !important;
 }
 
 html {
   min-width: 320px;
   min-height: 100%;
-  background-color: var(--bg-matte);
+  background-color: var(--bg-page);
   color: var(--text-primary);
   font-family: var(--font-sans);
   text-rendering: optimizeLegibility;
@@ -102,32 +122,40 @@ html {
 }
 
 body {
-  min-width: 320px;
-  min-height: 100vh;
   margin: 0;
-  background-color: var(--bg-matte);
+  padding: 0;
+  background-color: var(--bg-page);
   color: var(--text-primary);
   font-family: var(--font-sans);
   line-height: 1.5;
+  font-size: 13px;
+  overflow-x: hidden;
 }
 
-button,
-input,
-select,
-textarea {
-  font: inherit;
-  border-radius: var(--radius-sharp);
+/* Micro-label helper */
+.cc-micro-label {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  font-weight: 600;
 }
 
-button:focus-visible,
-input:focus-visible,
-select:focus-visible,
-textarea:focus-visible {
-  outline: 2px solid var(--border-focus);
-  outline-offset: 1px;
+/* Custom Scrollbars (Minimalist Hairline Dark) */
+::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
 }
 
-::selection {
-  color: #FFFFFF;
-  background: var(--brand-amber);
+::-webkit-scrollbar-track {
+  background: #0A0C0E;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(237, 231, 220, 0.18);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #E8913C;
 }

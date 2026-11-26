@@ -115,8 +115,10 @@ export default function LoginPage({
   return (
     <main className="auth-screen">
       <header className="auth-wordmark" aria-label="ResilienceX">
-        <span className="auth-wordmark-mark">R<span>X</span></span>
-        <span>resilience<span className="auth-wordmark-accent">X</span></span>
+        <span className="auth-brand-title">
+          ResilienceX<span className="auth-brand-dot">.</span>
+        </span>
+        <span className="auth-brand-sub">OPERATIONAL INTELLIGENCE</span>
       </header>
 
       <section className="login-card" aria-labelledby="auth-heading">

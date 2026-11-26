@@ -95,50 +95,54 @@ export default function ImpactAnalysisPage({
 
   return (
     <div>
-      <div className="cc-page-header">
-        <div className="cc-page-title-group">
-          <h1>06 // OPERATIONAL BLAST RADIUS & IMPACT ANALYSIS</h1>
-          <p>
-            Autonomous Graph Engine traversal calculating downstream system blast radius, operation availability status, and 3-factor composite severity scoring.
+      {/* Editorial Page Header */}
+      <div className="ed-section-header">
+        <div>
+          <span className="ed-section-num">06 // IMPACT INTELLIGENCE</span>
+          <h1 className="ed-section-title">Operational Blast Radius</h1>
+          <p className="ed-section-desc">
+            Autonomous Graph Engine traversal calculating downstream system blast radius, operation availability status, and composite severity scoring.
           </p>
         </div>
 
-        <div style={{ display: 'flex', gap: '8px' }}>
-          <button
-            type="button"
-            className="cc-button cc-button-primary"
-            disabled={!selectedSystemId || loading}
-            onClick={() => triggerAnalysis()}
-          >
-            {loading ? 'TRAVERSING GRAPH...' : 'EXECUTE IMPACT ANALYSIS'}
-          </button>
-        </div>
+        <button
+          type="button"
+          className="ed-action-link"
+          style={{ fontSize: '11px', letterSpacing: '0.1em' }}
+          disabled={!selectedSystemId || loading}
+          onClick={() => triggerAnalysis()}
+        >
+          {loading ? '[ TRAVERSING GRAPH... ]' : '[ EXECUTE IMPACT ANALYSIS ]'}
+        </button>
       </div>
 
       {error && <ErrorBanner message={error} onDismiss={() => setError(null)} />}
 
-      {/* System Selector Header */}
+      {/* Target System Selector Strip */}
       <div
         style={{
-          backgroundColor: 'var(--cc-bg-surface)',
-          border: '1px solid var(--cc-border)',
-          padding: '16px',
-          marginBottom: '24px',
+          border: '1px solid var(--ed-border)',
+          background: 'var(--ed-surface)',
+          padding: '20px 24px',
+          marginBottom: '32px',
           display: 'flex',
           alignItems: 'center',
-          gap: '16px',
+          gap: '24px',
           flexWrap: 'wrap',
         }}
       >
         <div style={{ flex: 1, minWidth: '280px' }}>
-          <label className="cc-form-label" style={{ display: 'block', marginBottom: '6px' }}>
-            SELECT TARGET LOGISTICS SYSTEM TO SIMULATE OUTAGE:
+          <label className="ed-stat-label" style={{ display: 'block', marginBottom: '8px' }}>
+            SELECT TARGET LOGISTICS NODE TO SIMULATE OUTAGE:
           </label>
           {loadingSystems ? (
-            <div style={{ fontSize: '11px', color: '#888888' }}>LOADING SYSTEMS INVENTORY...</div>
+            <div style={{ fontSize: '11px', color: 'var(--ed-text-muted)', fontFamily: 'var(--ed-font-mono)' }}>
+              LOADING SYSTEMS INVENTORY...
+            </div>
           ) : (
             <select
-              className="cc-select"
+              className="ed-filter-select"
+              style={{ width: '100%', maxWidth: '500px' }}
               value={selectedSystemId}
               onChange={(e) => {
                 setSelectedSystemId(e.target.value)
@@ -159,33 +163,27 @@ export default function ImpactAnalysisPage({
           <div
             style={{
               display: 'flex',
-              gap: '16px',
-              borderLeft: '1px solid var(--cc-border)',
-              paddingLeft: '16px',
+              gap: '28px',
+              borderLeft: '1px solid var(--ed-border)',
+              paddingLeft: '24px',
             }}
           >
             <div>
-              <div style={{ fontSize: '10px', color: '#777777', fontFamily: 'var(--cc-font-mono)' }}>
-                CLASSIFICATION
-              </div>
-              <div style={{ fontWeight: 600, fontSize: '12px' }}>
+              <div className="ed-stat-label">CLASSIFICATION</div>
+              <div style={{ fontWeight: 600, fontSize: '13px', marginTop: '4px', color: 'var(--ed-text)' }}>
                 {systemTypeLabels[selectedSystem.systemType]}
               </div>
             </div>
 
             <div>
-              <div style={{ fontSize: '10px', color: '#777777', fontFamily: 'var(--cc-font-mono)' }}>
-                ENVIRONMENT
-              </div>
-              <div style={{ fontWeight: 600, fontSize: '12px' }}>
+              <div className="ed-stat-label">ENVIRONMENT</div>
+              <div style={{ fontWeight: 600, fontSize: '13px', marginTop: '4px', color: 'var(--ed-text)' }}>
                 {systemEnvironmentLabels[selectedSystem.environment]}
               </div>
             </div>
 
             <div>
-              <div style={{ fontSize: '10px', color: '#777777', fontFamily: 'var(--cc-font-mono)' }}>
-                STATUS
-              </div>
+              <div className="ed-stat-label" style={{ marginBottom: '4px' }}>STATUS</div>
               <div>
                 <StatusBadge type="systemStatus" value={selectedSystem.lifecycleStatus} />
               </div>
@@ -203,11 +201,11 @@ export default function ImpactAnalysisPage({
           action={
             <button
               type="button"
-              className="cc-button cc-button-primary"
+              className="ed-action-link"
               disabled={!selectedSystemId}
               onClick={() => triggerAnalysis()}
             >
-              RUN ANALYSIS
+              [ RUN ANALYSIS ]
             </button>
           }
         />
@@ -215,88 +213,81 @@ export default function ImpactAnalysisPage({
 
       {impactData && !loading && (
         <>
-          {/* Summary Stat Grid */}
-          <div className="cc-grid-stats">
-            <div className="cc-stat-tile">
-              <div className="cc-stat-header">
-                <span>TOTAL AFFECTED SYSTEMS</span>
-                <span>[01]</span>
-              </div>
+          {/* Asymmetric Metric Grid */}
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
+              gap: '24px',
+              borderTop: '1px solid var(--ed-border)',
+              borderBottom: '1px solid var(--ed-border)',
+              padding: '24px 0',
+              marginBottom: '32px',
+            }}
+          >
+            <div>
+              <div className="ed-stat-label">TOTAL AFFECTED SYSTEMS</div>
               <div
-                className="cc-stat-value"
+                className="ed-stat-massive"
                 style={{
                   color:
                     impactData.totalAffectedSystemsCount > 0
-                      ? 'var(--cc-amber)'
-                      : 'var(--cc-green)',
+                      ? 'var(--ed-amber)'
+                      : 'var(--ed-teal-light)',
+                  margin: '8px 0',
                 }}
               >
                 {impactData.totalAffectedSystemsCount}
               </div>
-              <div className="cc-stat-sub">
-                <span>{impactData.directDependentsCount} DIRECT</span>
-                <span style={{ color: '#555555', margin: '0 4px' }}>|</span>
-                <span>{impactData.indirectDependentsCount} INDIRECT</span>
+              <div style={{ fontFamily: 'var(--ed-font-mono)', fontSize: '11px', color: 'var(--ed-text-muted)' }}>
+                {impactData.directDependentsCount} DIRECT | {impactData.indirectDependentsCount} INDIRECT
               </div>
             </div>
 
-            <div className="cc-stat-tile">
-              <div className="cc-stat-header">
-                <span>AFFECTED OPERATIONS</span>
-                <span>[02]</span>
-              </div>
+            <div>
+              <div className="ed-stat-label">AFFECTED OPERATIONS</div>
               <div
-                className="cc-stat-value"
+                className="ed-stat-massive"
                 style={{
                   color:
                     impactData.totalAffectedOperationsCount > 0
-                      ? 'var(--cc-red)'
-                      : 'var(--cc-text-primary)',
+                      ? 'var(--ed-amber)'
+                      : 'var(--ed-text)',
+                  margin: '8px 0',
                 }}
               >
                 {impactData.totalAffectedOperationsCount}
               </div>
-              <div className="cc-stat-sub">
-                <span style={{ color: 'var(--cc-red)' }}>
-                  {impactData.criticalOperationsCount} CRITICAL
-                </span>
-                <span style={{ color: '#555555', margin: '0 4px' }}>|</span>
-                <span style={{ color: 'var(--cc-amber)' }}>
-                  {impactData.highOperationsCount} HIGH
-                </span>
+              <div style={{ fontFamily: 'var(--ed-font-mono)', fontSize: '11px', color: 'var(--ed-text-muted)' }}>
+                <span style={{ color: 'var(--ed-amber)' }}>{impactData.criticalOperationsCount} CRITICAL</span> | {impactData.highOperationsCount} HIGH
               </div>
             </div>
 
-            <div className="cc-stat-tile">
-              <div className="cc-stat-header">
-                <span>VERIFICATION REQUIRED</span>
-                <span>[03]</span>
-              </div>
+            <div>
+              <div className="ed-stat-label">VERIFICATION REQUIRED</div>
               <div
-                className="cc-stat-value"
+                className="ed-stat-massive"
                 style={{
                   color:
                     impactData.requiresVerificationOperationsCount > 0
-                      ? 'var(--cc-amber)'
-                      : 'var(--cc-text-primary)',
+                      ? 'var(--ed-teal-light)'
+                      : 'var(--ed-text)',
+                  margin: '8px 0',
                 }}
               >
                 {impactData.requiresVerificationOperationsCount}
               </div>
-              <div className="cc-stat-sub">
-                <span>ANY-AVAILABLE REDUNDANCY</span>
+              <div style={{ fontFamily: 'var(--ed-font-mono)', fontSize: '11px', color: 'var(--ed-text-muted)' }}>
+                ANY-AVAILABLE REDUNDANCY
               </div>
             </div>
 
-            <div className="cc-stat-tile">
-              <div className="cc-stat-header">
-                <span>SIMULATED COMPONENT</span>
-                <span>[TARGET]</span>
-              </div>
-              <div className="cc-stat-value" style={{ fontSize: '18px', lineHeight: 1.2 }}>
+            <div>
+              <div className="ed-stat-label">SIMULATED NODE</div>
+              <div style={{ fontFamily: 'var(--ed-font-heading)', fontSize: '18px', fontWeight: 600, color: 'var(--ed-text)', marginTop: '12px', marginBottom: '8px' }}>
                 {impactData.failedSystem.name}
               </div>
-              <div className="cc-stat-sub">
+              <div>
                 <StatusBadge
                   type="systemCriticality"
                   value={impactData.failedSystem.criticality}
@@ -305,38 +296,36 @@ export default function ImpactAnalysisPage({
             </div>
           </div>
 
-          {/* Operational Blast Radius Technical Callout */}
+          {/* Architectural Directive Banner */}
           <div
             style={{
-              backgroundColor: '#12171E',
-              border: '1px solid #1E2E3E',
-              padding: '12px 16px',
-              marginBottom: '24px',
-              fontFamily: 'var(--cc-font-mono)',
+              border: '1px solid var(--ed-border)',
+              borderLeft: '2px solid var(--ed-amber)',
+              background: 'var(--ed-surface)',
+              padding: '16px 20px',
+              marginBottom: '32px',
+              fontFamily: 'var(--ed-font-mono)',
               fontSize: '11px',
-              color: '#8CB8D8',
-              lineHeight: 1.5,
+              color: 'var(--ed-text-secondary)',
+              lineHeight: 1.6,
             }}
           >
-            <strong>// DEFENSE DIRECTIVE // SCOPE OF BLAST RADIUS:</strong>
-            <br />
-            This analysis evaluates static dependency topology and Availability Rule constraints.
+            <div style={{ fontWeight: 700, letterSpacing: '0.08em', marginBottom: '4px', color: 'var(--ed-text)' }}>
+              ARCHITECTURAL DIRECTIVE: SCOPE OF BLAST RADIUS
+            </div>
+            This simulation evaluates deterministic dependency topology and Availability Rule constraints.
             Downstream systems marked as affected represent potential service degradation pathways.
-            Strict operations (<span style={{ color: '#FDE68A' }}>AllRequired</span>) will experience operational interruption.
-            Redundant operations (<span style={{ color: '#A7F3D0' }}>AnyAvailable</span>) maintain failover capability pending verification.
+            Strict operations (<span style={{ color: 'var(--ed-amber)' }}>AllRequired</span>) experience full operational interruption.
+            Redundant operations (<span style={{ color: 'var(--ed-teal-light)' }}>AnyAvailable</span>) maintain failover capability pending live verification.
           </div>
 
           {/* Affected Business Operations Section */}
-          <div style={{ marginBottom: '32px' }}>
-            <div className="cc-toolbar">
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <span style={{ fontFamily: 'var(--cc-font-mono)', fontSize: '11px', fontWeight: 800 }}>
-                  // IMPACTED BUSINESS OPERATIONS
-                </span>
-                <span className="cc-badge cc-badge-neutral">
-                  {impactData.affectedOperations.length} OPERATIONS
-                </span>
-              </div>
+          <div style={{ marginBottom: '40px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px' }}>
+              <span className="ed-section-num" style={{ margin: 0 }}>06.1 // IMPACTED BUSINESS OPERATIONS</span>
+              <span className="cc-badge cc-badge-neutral">
+                {impactData.affectedOperations.length} OPERATIONS
+              </span>
             </div>
 
             {impactData.affectedOperations.length === 0 ? (
@@ -345,200 +334,198 @@ export default function ImpactAnalysisPage({
                 description="The simulated failed system does not support any registered business operations, directly or through downstream dependencies."
               />
             ) : (
-              <div className="cc-table-container">
-                <table className="cc-table">
-                  <thead>
-                    <tr>
-                      <th>OPERATION</th>
-                      <th>CRITICALITY</th>
-                      <th>RULE</th>
-                      <th>AVAILABILITY STATUS</th>
-                      <th>SEVERITY</th>
-                      <th>SCORE</th>
-                      <th>CONTRIBUTING PATH</th>
-                      <th style={{ textAlign: 'right' }}>DETAILS</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {impactData.affectedOperations.map((op) => (
-                      <tr key={op.operationId}>
-                        <td>
-                          <div style={{ fontWeight: 700 }}>{op.operationName}</div>
-                          <div style={{ fontSize: '11px', color: '#777777', marginTop: '2px' }}>
-                            {op.affectedSupportingSystemsCount} of {op.totalSupportingSystemsCount} supporting systems impacted
-                          </div>
-                        </td>
-                        <td>
-                          <StatusBadge type="operationCriticality" value={op.operationCriticality} />
-                        </td>
-                        <td>
-                          <StatusBadge type="availabilityRule" value={op.availabilityRule} />
-                        </td>
-                        <td>
-                          <StatusBadge type="availabilityStatus" value={op.availabilityStatus} />
-                        </td>
-                        <td>
-                          <StatusBadge type="impactSeverity" value={op.potentialImpactSeverity} />
-                        </td>
-                        <td>
-                          <span style={{ fontFamily: 'var(--cc-font-mono)', fontWeight: 700 }}>
-                            {op.numericSeverityScore.toFixed(2)}
-                          </span>
-                        </td>
-                        <td>
-                          <div style={{ fontFamily: 'var(--cc-font-mono)', fontSize: '11px', color: '#AAAAAA' }}>
-                            {op.contributingDependencyPath.length > 0
-                              ? op.contributingDependencyPath.join(' → ')
-                              : op.contributingSystemName}
-                          </div>
-                        </td>
-                        <td style={{ textAlign: 'right' }}>
-                          <button
-                            type="button"
-                            className="cc-button cc-button-sm"
-                            onClick={() => setInspectingOp(op)}
-                          >
-                            INSPECT SCORE [⚙]
-                          </button>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+              <div style={{ borderTop: '1px solid var(--ed-border)' }}>
+                {impactData.affectedOperations.map((op, idx) => {
+                  const indexStr = String(idx + 1).padStart(3, '0')
+                  return (
+                    <div
+                      key={op.operationId}
+                      className="ed-system-row"
+                      style={{
+                        display: 'grid',
+                        gridTemplateColumns: '50px 2fr 100px 100px 120px 100px 90px 1.5fr 120px',
+                        alignItems: 'center',
+                        gap: '12px',
+                        padding: '14px 8px',
+                        borderBottom: '1px solid var(--ed-border)',
+                      }}
+                    >
+                      <div className="ed-system-index">{indexStr}</div>
+                      <div>
+                        <div style={{ fontFamily: 'var(--ed-font-heading)', fontWeight: 600, fontSize: '14px', color: 'var(--ed-text)' }}>
+                          {op.operationName}
+                        </div>
+                        <div style={{ fontSize: '11px', color: 'var(--ed-text-muted)', marginTop: '2px' }}>
+                          {op.affectedSupportingSystemsCount} of {op.totalSupportingSystemsCount} supporting systems impacted
+                        </div>
+                      </div>
+                      <div>
+                        <StatusBadge type="operationCriticality" value={op.operationCriticality} />
+                      </div>
+                      <div>
+                        <StatusBadge type="availabilityRule" value={op.availabilityRule} />
+                      </div>
+                      <div>
+                        <StatusBadge type="availabilityStatus" value={op.availabilityStatus} />
+                      </div>
+                      <div>
+                        <StatusBadge type="impactSeverity" value={op.potentialImpactSeverity} />
+                      </div>
+                      <div>
+                        <span style={{ fontFamily: 'var(--ed-font-mono)', fontWeight: 700, fontSize: '13px', color: 'var(--ed-text)' }}>
+                          {op.numericSeverityScore.toFixed(2)}
+                        </span>
+                      </div>
+                      <div style={{ fontFamily: 'var(--ed-font-mono)', fontSize: '11px', color: 'var(--ed-text-muted)' }}>
+                        {op.contributingDependencyPath.length > 0
+                          ? op.contributingDependencyPath.join(' → ')
+                          : op.contributingSystemName}
+                      </div>
+                      <div style={{ textAlign: 'right' }}>
+                        <button
+                          type="button"
+                          className="ed-action-link"
+                          style={{ fontSize: '11px' }}
+                          onClick={() => setInspectingOp(op)}
+                        >
+                          [INSPECT]
+                        </button>
+                      </div>
+                    </div>
+                  )
+                })}
               </div>
             )}
           </div>
 
           {/* Directly Affected Systems */}
-          <div style={{ marginBottom: '32px' }}>
-            <div className="cc-toolbar">
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <span style={{ fontFamily: 'var(--cc-font-mono)', fontSize: '11px', fontWeight: 800 }}>
-                  // DIRECTLY RELIANT DOWNSTREAM SYSTEMS (DEPTH = 1)
-                </span>
-                <span className="cc-badge cc-badge-neutral">
-                  {impactData.directDependents.length} SYSTEMS
-                </span>
-              </div>
+          <div style={{ marginBottom: '40px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px' }}>
+              <span className="ed-section-num" style={{ margin: 0 }}>06.2 // DIRECTLY RELIANT DOWNSTREAM NODES (DEPTH = 1)</span>
+              <span className="cc-badge cc-badge-neutral">
+                {impactData.directDependents.length} SYSTEMS
+              </span>
             </div>
 
             {impactData.directDependents.length === 0 ? (
               <div
                 style={{
                   padding: '16px',
-                  border: '1px dashed var(--cc-border)',
-                  color: '#777777',
+                  border: '1px dashed var(--ed-border)',
+                  color: 'var(--ed-text-muted)',
                   fontSize: '11px',
-                  fontFamily: 'var(--cc-font-mono)',
+                  fontFamily: 'var(--ed-font-mono)',
                 }}
               >
                 No systems directly depend upon this component.
               </div>
             ) : (
-              <div className="cc-table-container">
-                <table className="cc-table">
-                  <thead>
-                    <tr>
-                      <th>SYSTEM NAME</th>
-                      <th>TYPE</th>
-                      <th>CRITICALITY</th>
-                      <th>DEPENDENCY TYPE</th>
-                      <th>DEPTH</th>
-                      <th>PATH</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {impactData.directDependents.map((dep) => (
-                      <tr key={dep.systemId}>
-                        <td style={{ fontWeight: 700 }}>{dep.systemName}</td>
-                        <td>
-                          <span className="cc-badge cc-badge-neutral">
-                            {systemTypeLabels[dep.systemType]?.split(' ')[0] || 'System'}
-                          </span>
-                        </td>
-                        <td>
-                          <StatusBadge type="systemCriticality" value={dep.criticality} />
-                        </td>
-                        <td>
-                          <StatusBadge type="dependencyType" value={dep.dependencyType} />
-                        </td>
-                        <td>
-                          <span style={{ fontFamily: 'var(--cc-font-mono)' }}>{dep.depth}</span>
-                        </td>
-                        <td style={{ fontFamily: 'var(--cc-font-mono)', fontSize: '11px', color: '#888888' }}>
-                          {dep.dependencyPath.join(' → ')}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+              <div style={{ borderTop: '1px solid var(--ed-border)' }}>
+                {impactData.directDependents.map((dep, idx) => {
+                  const indexStr = String(idx + 1).padStart(3, '0')
+                  return (
+                    <div
+                      key={dep.systemId}
+                      className="ed-system-row"
+                      style={{
+                        display: 'grid',
+                        gridTemplateColumns: '50px 2fr 120px 100px 120px 60px 2fr',
+                        alignItems: 'center',
+                        gap: '12px',
+                        padding: '14px 8px',
+                        borderBottom: '1px solid var(--ed-border)',
+                      }}
+                    >
+                      <div className="ed-system-index">{indexStr}</div>
+                      <div style={{ fontFamily: 'var(--ed-font-heading)', fontWeight: 600, fontSize: '14px', color: 'var(--ed-text)' }}>
+                        {dep.systemName}
+                      </div>
+                      <div>
+                        <span className="cc-badge cc-badge-neutral">
+                          {systemTypeLabels[dep.systemType]?.split(' ')[0] || 'System'}
+                        </span>
+                      </div>
+                      <div>
+                        <StatusBadge type="systemCriticality" value={dep.criticality} />
+                      </div>
+                      <div>
+                        <StatusBadge type="dependencyType" value={dep.dependencyType} />
+                      </div>
+                      <div style={{ fontFamily: 'var(--ed-font-mono)', fontSize: '12px', color: 'var(--ed-text-muted)' }}>
+                        D:{dep.depth}
+                      </div>
+                      <div style={{ fontFamily: 'var(--ed-font-mono)', fontSize: '11px', color: 'var(--ed-text-muted)' }}>
+                        {dep.dependencyPath.join(' → ')}
+                      </div>
+                    </div>
+                  )
+                })}
               </div>
             )}
           </div>
 
-          {/* Indirect Downstream Systems */}
-          <div>
-            <div className="cc-toolbar">
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <span style={{ fontFamily: 'var(--cc-font-mono)', fontSize: '11px', fontWeight: 800 }}>
-                  // INDIRECT CASCADE SYSTEMS (DEPTH &gt; 1)
-                </span>
-                <span className="cc-badge cc-badge-neutral">
-                  {impactData.indirectDependents.length} SYSTEMS
-                </span>
-              </div>
+          {/* Indirect Cascade Systems */}
+          <div style={{ marginBottom: '48px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px' }}>
+              <span className="ed-section-num" style={{ margin: 0 }}>06.3 // INDIRECT CASCADE SYSTEMS (DEPTH &gt; 1)</span>
+              <span className="cc-badge cc-badge-neutral">
+                {impactData.indirectDependents.length} SYSTEMS
+              </span>
             </div>
 
             {impactData.indirectDependents.length === 0 ? (
               <div
                 style={{
                   padding: '16px',
-                  border: '1px dashed var(--cc-border)',
-                  color: '#777777',
+                  border: '1px dashed var(--ed-border)',
+                  color: 'var(--ed-text-muted)',
                   fontSize: '11px',
-                  fontFamily: 'var(--cc-font-mono)',
+                  fontFamily: 'var(--ed-font-mono)',
                 }}
               >
-                No secondary or tertiary cascading systems identified in the dependency graph.
+                No second-degree or deeper indirect cascades detected.
               </div>
             ) : (
-              <div className="cc-table-container">
-                <table className="cc-table">
-                  <thead>
-                    <tr>
-                      <th>SYSTEM NAME</th>
-                      <th>TYPE</th>
-                      <th>CRITICALITY</th>
-                      <th>DEPENDENCY TYPE</th>
-                      <th>DEPTH</th>
-                      <th>PATH (TRAVERSAL CHAIN)</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {impactData.indirectDependents.map((dep) => (
-                      <tr key={dep.systemId}>
-                        <td style={{ fontWeight: 700 }}>{dep.systemName}</td>
-                        <td>
-                          <span className="cc-badge cc-badge-neutral">
-                            {systemTypeLabels[dep.systemType]?.split(' ')[0] || 'System'}
-                          </span>
-                        </td>
-                        <td>
-                          <StatusBadge type="systemCriticality" value={dep.criticality} />
-                        </td>
-                        <td>
-                          <StatusBadge type="dependencyType" value={dep.dependencyType} />
-                        </td>
-                        <td>
-                          <span style={{ fontFamily: 'var(--cc-font-mono)' }}>{dep.depth}</span>
-                        </td>
-                        <td style={{ fontFamily: 'var(--cc-font-mono)', fontSize: '11px', color: '#888888' }}>
-                          {dep.dependencyPath.join(' → ')}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+              <div style={{ borderTop: '1px solid var(--ed-border)' }}>
+                {impactData.indirectDependents.map((dep, idx) => {
+                  const indexStr = String(idx + 1).padStart(3, '0')
+                  return (
+                    <div
+                      key={dep.systemId}
+                      className="ed-system-row"
+                      style={{
+                        display: 'grid',
+                        gridTemplateColumns: '50px 2fr 120px 100px 120px 60px 2fr',
+                        alignItems: 'center',
+                        gap: '12px',
+                        padding: '14px 8px',
+                        borderBottom: '1px solid var(--ed-border)',
+                      }}
+                    >
+                      <div className="ed-system-index">{indexStr}</div>
+                      <div style={{ fontFamily: 'var(--ed-font-heading)', fontWeight: 600, fontSize: '14px', color: 'var(--ed-text)' }}>
+                        {dep.systemName}
+                      </div>
+                      <div>
+                        <span className="cc-badge cc-badge-neutral">
+                          {systemTypeLabels[dep.systemType]?.split(' ')[0] || 'System'}
+                        </span>
+                      </div>
+                      <div>
+                        <StatusBadge type="systemCriticality" value={dep.criticality} />
+                      </div>
+                      <div>
+                        <StatusBadge type="dependencyType" value={dep.dependencyType} />
+                      </div>
+                      <div style={{ fontFamily: 'var(--ed-font-mono)', fontSize: '12px', color: 'var(--ed-text-muted)' }}>
+                        D:{dep.depth}
+                      </div>
+                      <div style={{ fontFamily: 'var(--ed-font-mono)', fontSize: '11px', color: 'var(--ed-text-muted)' }}>
+                        {dep.dependencyPath.join(' → ')}
+                      </div>
+                    </div>
+                  )
+                })}
               </div>
             )}
           </div>
@@ -548,7 +535,7 @@ export default function ImpactAnalysisPage({
       {/* Inspect Scoring Breakdown Modal */}
       <Modal
         isOpen={inspectingOp !== null}
-        title={`SCORING BREAKDOWN // ${inspectingOp?.operationName || ''}`}
+        title={`SCORING BREAKDOWN: ${inspectingOp?.operationName || ''}`}
         onClose={() => setInspectingOp(null)}
         footer={
           <button
@@ -556,96 +543,67 @@ export default function ImpactAnalysisPage({
             className="cc-button cc-button-primary"
             onClick={() => setInspectingOp(null)}
           >
-            CLOSE
+            [ CLOSE INSPECTION ]
           </button>
         }
       >
         {inspectingOp && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-            <div
-              style={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(3, 1fr)',
-                gap: '12px',
-                textAlign: 'center',
-              }}
-            >
-              <div style={{ background: '#111111', padding: '12px', border: '1px solid var(--cc-border)' }}>
-                <div style={{ fontSize: '10px', color: '#777777', fontFamily: 'var(--cc-font-mono)' }}>
-                  SYSTEM FACTOR (30%)
-                </div>
-                <div style={{ fontSize: '18px', fontWeight: 800, marginTop: '4px' }}>
-                  {inspectingOp.scoringBreakdown.systemCriticalityScore.toFixed(2)}
-                </div>
-                <div style={{ fontSize: '10px', color: '#888888', marginTop: '2px' }}>
-                  WEIGHT: {inspectingOp.scoringBreakdown.systemCriticalityWeight}%
+            <div style={{ padding: '12px', background: 'var(--cc-bg-surface-elevated)', border: '1px solid var(--cc-border)' }}>
+              <div style={{ fontSize: '11px', color: 'var(--cc-text-muted)', fontFamily: 'var(--cc-font-mono)' }}>COMPOSITE IMPACT SCORE</div>
+              <div style={{ fontSize: '28px', fontWeight: 800, fontFamily: 'var(--cc-font-mono)', color: 'var(--cc-amber)', marginTop: '4px' }}>
+                {inspectingOp.numericSeverityScore.toFixed(2)} / 5.00
+              </div>
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+              <div>
+                <span className="cc-form-label">OPERATION CRITICALITY:</span>
+                <div style={{ marginTop: '4px' }}>
+                  <StatusBadge type="operationCriticality" value={inspectingOp.operationCriticality} />
                 </div>
               </div>
-
-              <div style={{ background: '#111111', padding: '12px', border: '1px solid var(--cc-border)' }}>
-                <div style={{ fontSize: '10px', color: '#777777', fontFamily: 'var(--cc-font-mono)' }}>
-                  DEPENDENCY FACTOR (20%)
-                </div>
-                <div style={{ fontSize: '18px', fontWeight: 800, marginTop: '4px' }}>
-                  {inspectingOp.scoringBreakdown.dependencyTypeScore.toFixed(2)}
-                </div>
-                <div style={{ fontSize: '10px', color: '#888888', marginTop: '2px' }}>
-                  WEIGHT: {inspectingOp.scoringBreakdown.dependencyTypeWeight}%
+              <div>
+                <span className="cc-form-label">AVAILABILITY RULE:</span>
+                <div style={{ marginTop: '4px' }}>
+                  <StatusBadge type="availabilityRule" value={inspectingOp.availabilityRule} />
                 </div>
               </div>
-
-              <div style={{ background: '#111111', padding: '12px', border: '1px solid var(--cc-border)' }}>
-                <div style={{ fontSize: '10px', color: '#777777', fontFamily: 'var(--cc-font-mono)' }}>
-                  OPERATION FACTOR (50%)
+              <div>
+                <span className="cc-form-label">POTENTIAL IMPACT SEVERITY:</span>
+                <div style={{ marginTop: '4px' }}>
+                  <StatusBadge type="impactSeverity" value={inspectingOp.potentialImpactSeverity} />
                 </div>
-                <div style={{ fontSize: '18px', fontWeight: 800, marginTop: '4px' }}>
-                  {inspectingOp.scoringBreakdown.operationCriticalityScore.toFixed(2)}
-                </div>
-                <div style={{ fontSize: '10px', color: '#888888', marginTop: '2px' }}>
-                  WEIGHT: {inspectingOp.scoringBreakdown.operationCriticalityWeight}%
+              </div>
+              <div>
+                <span className="cc-form-label">AVAILABILITY STATUS:</span>
+                <div style={{ marginTop: '4px' }}>
+                  <StatusBadge type="availabilityStatus" value={inspectingOp.availabilityStatus} />
                 </div>
               </div>
             </div>
 
-            <div
-              style={{
-                backgroundColor: 'var(--cc-bg-secondary)',
-                border: '1px solid var(--cc-border)',
-                padding: '12px',
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-              }}
-            >
-              <span className="cc-form-label">COMPOSITE IMPACT SCORE:</span>
-              <span style={{ fontSize: '20px', fontWeight: 800, color: 'var(--cc-amber)', fontFamily: 'var(--cc-font-mono)' }}>
-                {inspectingOp.scoringBreakdown.totalScore.toFixed(2)} / 4.00
-              </span>
-            </div>
-
-            <div>
-              <span className="cc-form-label">AVAILABILITY EVALUATION REASON:</span>
-              <p style={{ margin: '4px 0 0 0', fontSize: '12px', color: '#CCCCCC', lineHeight: 1.5 }}>
-                {inspectingOp.availabilityReason}
+            <div style={{ borderTop: '1px solid var(--cc-border)', paddingTop: '12px' }}>
+              <span className="cc-form-label">AFFECTED INFRASTRUCTURE RATIO:</span>
+              <p style={{ margin: '4px 0 0 0', fontSize: '13px' }}>
+                <strong>{inspectingOp.affectedSupportingSystemsCount}</strong> of <strong>{inspectingOp.totalSupportingSystemsCount}</strong> supporting systems degraded or offline.
               </p>
             </div>
 
-            <div>
-              <span className="cc-form-label">SEVERITY RATING JUSTIFICATION:</span>
-              <p style={{ margin: '4px 0 0 0', fontSize: '12px', color: '#999999', lineHeight: 1.5 }}>
-                {inspectingOp.severityReason}
-              </p>
+            <div style={{ borderTop: '1px solid var(--cc-border)', paddingTop: '12px' }}>
+              <span className="cc-form-label">CONTRIBUTING SYSTEM &amp; TOPOLOGY PATH:</span>
+              <div style={{ fontFamily: 'var(--cc-font-mono)', fontSize: '12px', color: 'var(--cc-text-secondary)', marginTop: '4px' }}>
+                {inspectingOp.contributingDependencyPath.length > 0
+                  ? inspectingOp.contributingDependencyPath.join(' → ')
+                  : inspectingOp.contributingSystemName}
+              </div>
             </div>
 
-            <div>
-              <span className="cc-form-label">IMPACTED SUPPORTING INFRASTRUCTURE:</span>
-              <div style={{ marginTop: '4px', display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
-                {inspectingOp.affectedSupportingSystemNames.map((name, i) => (
-                  <span key={i} className="cc-badge cc-badge-red">
-                    {name}
-                  </span>
-                ))}
-              </div>
+            <div style={{ borderTop: '1px solid var(--cc-border)', paddingTop: '12px' }}>
+              <span className="cc-form-label">WEIGHTED CALCULATION FORMULA:</span>
+              <p style={{ margin: '4px 0 0 0', fontSize: '11px', color: 'var(--cc-text-muted)', fontFamily: 'var(--cc-font-mono)', lineHeight: 1.5 }}>
+                Composite Score = (30% System Criticality) + (20% Dependency Factor) + (50% Business Operation Criticality &amp; Availability Rule Evaluation).
+              </p>
             </div>
           </div>
         )}

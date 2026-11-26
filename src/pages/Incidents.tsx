@@ -37,7 +37,7 @@ export default function IncidentsPage({ onNavigate }: IncidentsPageProps) {
   const [severityFilter, setSeverityFilter] = useState<string>('all')
   const [typeFilter, setTypeFilter] = useState<string>('all')
 
-  // Modals
+  // Modals & Panels
   const [isCreateOpen, setIsCreateOpen] = useState(false)
   const [editingIncident, setEditingIncident] = useState<IncidentResponseDTO | null>(null)
   const [selectedIncidentForDetails, setSelectedIncidentForDetails] = useState<IncidentResponseDTO | null>(null)
@@ -105,7 +105,6 @@ export default function IncidentsPage({ onNavigate }: IncidentsPageProps) {
 
   function handleOpenStatusTransition(inc: IncidentResponseDTO) {
     setTransitioningIncident(inc)
-    // Suggest the next natural status step
     if (inc.status === IncidentStatus.Open) setTargetStatus(IncidentStatus.Investigating)
     else if (inc.status === IncidentStatus.Investigating) setTargetStatus(IncidentStatus.Mitigating)
     else if (inc.status === IncidentStatus.Mitigating) setTargetStatus(IncidentStatus.Resolved)
@@ -213,204 +212,217 @@ export default function IncidentsPage({ onNavigate }: IncidentsPageProps) {
 
   return (
     <div>
-      <div className="cc-page-header">
-        <div className="cc-page-title-group">
-          <h1>05 // INCIDENT RESPONSE COMMAND</h1>
-          <p>
-            Report, triage and track disruption events. Triggers automated blast radius and business operation impact simulation.
+      {/* Editorial Page Header */}
+      <div className="ed-section-header">
+        <div>
+          <span className="ed-section-num">05 // INCIDENT DISPATCH</span>
+          <h1 className="ed-section-title">Incident Response Command</h1>
+          <p className="ed-section-desc">
+            Chronological operational disruption timeline, telemetry triage, and automated failure cascade linkage.
           </p>
         </div>
 
         <button
           type="button"
-          className="cc-button cc-button-primary"
+          className="ed-action-link"
+          style={{ fontSize: '11px', letterSpacing: '0.1em' }}
           onClick={handleOpenCreate}
           disabled={activeSystems.length === 0}
-          title={activeSystems.length === 0 ? 'No active systems available' : undefined}
         >
-          + REPORT NEW DISRUPTION
+          [ + REPORT DISRUPTION ]
         </button>
       </div>
 
       {actionSuccess && (
         <div
           className="cc-badge cc-badge-green"
-          style={{ width: '100%', padding: '10px 14px', marginBottom: '16px', boxSizing: 'border-box' }}
+          style={{ width: '100%', padding: '12px 16px', marginBottom: '20px', boxSizing: 'border-box' }}
         >
-          ✓ {actionSuccess}
+          [SUCCESS] {actionSuccess}
         </div>
       )}
 
       {error && <ErrorBanner message={error} onDismiss={() => setError(null)} />}
 
-      {/* Toolbar & Filter */}
-      <div className="cc-toolbar">
-        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center' }}>
-          <div className="cc-search-box">
-            <span style={{ color: '#555555', fontFamily: 'var(--cc-font-mono)' }}>⌕</span>
-            <input
-              type="text"
-              placeholder="SEARCH INCIDENTS..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
-          </div>
-
-          <select
-            className="cc-select"
-            style={{ width: 'auto' }}
-            value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value)}
-          >
-            <option value="all">ALL STATUSES</option>
-            {Object.entries(incidentStatusLabels).map(([key, label]) => (
-              <option key={key} value={key}>
-                {label.toUpperCase()}
-              </option>
-            ))}
-          </select>
-
-          <select
-            className="cc-select"
-            style={{ width: 'auto' }}
-            value={severityFilter}
-            onChange={(e) => setSeverityFilter(e.target.value)}
-          >
-            <option value="all">ALL SEVERITIES</option>
-            {Object.entries(incidentSeverityLabels).map(([key, label]) => (
-              <option key={key} value={key}>
-                {label.toUpperCase()}
-              </option>
-            ))}
-          </select>
-
-          <select
-            className="cc-select"
-            style={{ width: 'auto' }}
-            value={typeFilter}
-            onChange={(e) => setTypeFilter(e.target.value)}
-          >
-            <option value="all">ALL INCIDENT TYPES</option>
-            {Object.entries(incidentTypeLabels).map(([key, label]) => (
-              <option key={key} value={key}>
-                {label.toUpperCase()}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        <div style={{ fontFamily: 'var(--cc-font-mono)', fontSize: '11px', color: '#888888' }}>
-          RECORDED INCIDENTS: <strong>{filteredIncidents.length}</strong> / {incidents.length}
-        </div>
-      </div>
-
-      {/* Incident Details Drawer if selected */}
+      {/* Selected Incident Diagnostic Station */}
       {selectedIncidentForDetails && (
-        <div className="cc-drawer">
-          <div className="cc-drawer-header">
+        <div
+          style={{
+            border: '1px solid var(--ed-border)',
+            borderLeft: '2px solid var(--ed-amber)',
+            background: 'var(--ed-surface)',
+            padding: '24px 28px',
+            marginBottom: '32px',
+          }}
+        >
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '16px', marginBottom: '20px' }}>
             <div>
-              <span className="cc-brand-badge" style={{ marginRight: '8px' }}>
-                INCIDENT TELEMETRY
+              <span style={{ fontSize: '10px', color: 'var(--ed-amber)', fontFamily: 'var(--ed-font-mono)', letterSpacing: '0.1em', fontWeight: 700 }}>
+                [ACTIVE DIAGNOSTIC TELEMETRY]
               </span>
-              <strong style={{ fontSize: '14px' }}>{selectedIncidentForDetails.title}</strong>
+              <h2 style={{ fontFamily: 'var(--ed-font-heading)', fontSize: '20px', fontWeight: 600, color: 'var(--ed-text)', margin: '4px 0 0 0' }}>
+                {selectedIncidentForDetails.title}
+              </h2>
             </div>
 
-            <div style={{ display: 'flex', gap: '8px' }}>
+            <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
               <button
                 type="button"
-                className="cc-button cc-button-sm cc-button-danger"
+                className="ed-action-link"
+                style={{ fontSize: '11px', color: 'var(--ed-amber)' }}
                 onClick={() => onNavigate('ImpactAnalysis', selectedIncidentForDetails.failedSystemId)}
               >
-                VIEW IMPACT ANALYSIS →
+                [ BLAST RADIUS → ]
               </button>
               {selectedIncidentForDetails.status !== IncidentStatus.Closed && (
                 <>
                   <button
                     type="button"
-                    className="cc-button cc-button-sm"
+                    className="ed-action-link"
+                    style={{ fontSize: '11px' }}
                     onClick={() => handleOpenStatusTransition(selectedIncidentForDetails)}
                   >
-                    TRANSITION STATUS
+                    [ TRANSITION STATUS ]
                   </button>
                   <button
                     type="button"
-                    className="cc-button cc-button-sm"
+                    className="ed-action-link"
+                    style={{ fontSize: '11px' }}
                     onClick={() => handleOpenEdit(selectedIncidentForDetails)}
                   >
-                    EDIT INCIDENT
+                    [ EDIT ]
                   </button>
                 </>
               )}
               <button
                 type="button"
-                className="cc-button cc-button-sm"
+                className="ed-action-link"
+                style={{ fontSize: '11px' }}
                 onClick={() => setSelectedIncidentForDetails(null)}
               >
-                ✕ CLOSE
+                [ ✕ CLOSE ]
               </button>
             </div>
           </div>
 
-          <div className="cc-grid-details">
-            <div className="cc-detail-item">
-              <span className="cc-detail-label">INCIDENT ID:</span>
-              <span className="cc-detail-value" style={{ fontFamily: 'var(--cc-font-mono)', fontSize: '11px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '20px', paddingBottom: '20px', borderBottom: '1px solid var(--ed-border)' }}>
+            <div>
+              <div style={{ fontSize: '10px', color: 'var(--ed-text-muted)', fontFamily: 'var(--ed-font-mono)' }}>INCIDENT ID</div>
+              <div style={{ fontFamily: 'var(--ed-font-mono)', fontSize: '12px', color: 'var(--ed-text)', marginTop: '4px' }}>
                 {selectedIncidentForDetails.id}
-              </span>
+              </div>
             </div>
-            <div className="cc-detail-item">
-              <span className="cc-detail-label">FAILED COMPONENT:</span>
-              <span className="cc-detail-value" style={{ fontWeight: 700 }}>
+
+            <div>
+              <div style={{ fontSize: '10px', color: 'var(--ed-text-muted)', fontFamily: 'var(--ed-font-mono)' }}>FAILED COMPONENT</div>
+              <div style={{ fontFamily: 'var(--ed-font-heading)', fontSize: '13px', color: 'var(--ed-text)', fontWeight: 600, marginTop: '4px' }}>
                 {selectedIncidentForDetails.failedSystemName}
-              </span>
+              </div>
             </div>
-            <div className="cc-detail-item">
-              <span className="cc-detail-label">SEVERITY LEVEL:</span>
-              <span className="cc-detail-value">
+
+            <div>
+              <div style={{ fontSize: '10px', color: 'var(--ed-text-muted)', fontFamily: 'var(--ed-font-mono)' }}>SEVERITY LEVEL</div>
+              <div style={{ marginTop: '4px' }}>
                 <StatusBadge type="incidentSeverity" value={selectedIncidentForDetails.severity} />
-              </span>
+              </div>
             </div>
-            <div className="cc-detail-item">
-              <span className="cc-detail-label">LIFECYCLE STATUS:</span>
-              <span className="cc-detail-value">
+
+            <div>
+              <div style={{ fontSize: '10px', color: 'var(--ed-text-muted)', fontFamily: 'var(--ed-font-mono)' }}>LIFECYCLE STATUS</div>
+              <div style={{ marginTop: '4px' }}>
                 <StatusBadge type="incidentStatus" value={selectedIncidentForDetails.status} />
-              </span>
+              </div>
             </div>
-            <div className="cc-detail-item">
-              <span className="cc-detail-label">DISRUPTION TYPE:</span>
-              <span className="cc-detail-value">
+
+            <div>
+              <div style={{ fontSize: '10px', color: 'var(--ed-text-muted)', fontFamily: 'var(--ed-font-mono)' }}>DISRUPTION TYPE</div>
+              <div style={{ fontFamily: 'var(--ed-font-mono)', fontSize: '12px', color: 'var(--ed-text)', marginTop: '4px' }}>
                 {incidentTypeLabels[selectedIncidentForDetails.incidentType]}
-              </span>
+              </div>
             </div>
-            <div className="cc-detail-item">
-              <span className="cc-detail-label">DETECTED TIMESTAMP:</span>
-              <span className="cc-detail-value" style={{ fontFamily: 'var(--cc-font-mono)' }}>
+
+            <div>
+              <div style={{ fontSize: '10px', color: 'var(--ed-text-muted)', fontFamily: 'var(--ed-font-mono)' }}>DETECTED AT</div>
+              <div style={{ fontFamily: 'var(--ed-font-mono)', fontSize: '12px', color: 'var(--ed-text)', marginTop: '4px' }}>
                 {new Date(selectedIncidentForDetails.detectedAt).toLocaleString()}
-              </span>
+              </div>
             </div>
           </div>
 
           {selectedIncidentForDetails.description && (
-            <div style={{ marginTop: '14px' }}>
-              <span className="cc-detail-label">INCIDENT NARRATIVE / DIAGNOSTIC NOTES:</span>
-              <p style={{ margin: '4px 0 0 0', fontSize: '12px', color: '#CCCCCC', lineHeight: 1.5 }}>
+            <div style={{ marginTop: '16px' }}>
+              <div style={{ fontSize: '10px', color: 'var(--ed-text-muted)', fontFamily: 'var(--ed-font-mono)', letterSpacing: '0.08em' }}>
+                INCIDENT NARRATIVE / DIAGNOSTIC NOTES
+              </div>
+              <p style={{ margin: '6px 0 0 0', fontSize: '13px', color: 'var(--ed-text-secondary)', lineHeight: 1.6 }}>
                 {selectedIncidentForDetails.description}
               </p>
             </div>
           )}
 
           {selectedIncidentForDetails.resolvedAt && (
-            <div style={{ marginTop: '8px' }}>
-              <span className="cc-detail-label">RESOLVED AT:</span>
-              <span style={{ fontSize: '11px', color: 'var(--cc-green)', fontFamily: 'var(--cc-font-mono)', marginLeft: '8px' }}>
-                {new Date(selectedIncidentForDetails.resolvedAt).toLocaleString()}
-              </span>
+            <div style={{ marginTop: '12px', fontFamily: 'var(--ed-font-mono)', fontSize: '11px', color: 'var(--ed-teal-light)' }}>
+              RESOLVED AT: {new Date(selectedIncidentForDetails.resolvedAt).toLocaleString()}
             </div>
           )}
         </div>
       )}
 
-      {/* Main Incidents Table */}
+      {/* Editorial Filter Strip */}
+      <div className="ed-filter-strip">
+        <input
+          type="text"
+          className="ed-filter-input"
+          placeholder="SEARCH INCIDENTS..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+        />
+
+        <select
+          className="ed-filter-select"
+          value={statusFilter}
+          onChange={(e) => setStatusFilter(e.target.value)}
+        >
+          <option value="all">ALL STATUSES</option>
+          {Object.entries(incidentStatusLabels).map(([key, label]) => (
+            <option key={key} value={key}>
+              {label.toUpperCase()}
+            </option>
+          ))}
+        </select>
+
+        <select
+          className="ed-filter-select"
+          value={severityFilter}
+          onChange={(e) => setSeverityFilter(e.target.value)}
+        >
+          <option value="all">ALL SEVERITIES</option>
+          {Object.entries(incidentSeverityLabels).map(([key, label]) => (
+            <option key={key} value={key}>
+              {label.toUpperCase()}
+            </option>
+          ))}
+        </select>
+
+        <select
+          className="ed-filter-select"
+          value={typeFilter}
+          onChange={(e) => setTypeFilter(e.target.value)}
+        >
+          <option value="all">ALL DISRUPTION TYPES</option>
+          {Object.entries(incidentTypeLabels).map(([key, label]) => (
+            <option key={key} value={key}>
+              {label.toUpperCase()}
+            </option>
+          ))}
+        </select>
+
+        <div style={{ marginLeft: 'auto', fontFamily: 'var(--ed-font-mono)', fontSize: '11px', color: 'var(--ed-text-muted)' }}>
+          TOTAL: <span style={{ color: 'var(--ed-text)', fontWeight: 700 }}>{filteredIncidents.length}</span> / {incidents.length}
+        </div>
+      </div>
+
+      {/* Main Incidents Chronological Timeline */}
       {loading ? (
         <LoadingSpinner label="QUERYING INCIDENT LOGS..." />
       ) : filteredIncidents.length === 0 ? (
@@ -420,119 +432,126 @@ export default function IncidentsPage({ onNavigate }: IncidentsPageProps) {
           action={
             <button
               type="button"
-              className="cc-button cc-button-primary"
+              className="ed-action-link"
               onClick={handleOpenCreate}
             >
-              + REPORT NEW DISRUPTION
+              [ + REPORT NEW DISRUPTION ]
             </button>
           }
         />
       ) : (
-        <div className="cc-table-container">
-          <table className="cc-table">
-            <thead>
-              <tr>
-                <th>INCIDENT ID</th>
-                <th>TITLE</th>
-                <th>FAILED SYSTEM</th>
-                <th>TYPE</th>
-                <th>SEVERITY</th>
-                <th>STATUS</th>
-                <th>DETECTED</th>
-                <th style={{ textAlign: 'right' }}>COMMAND ACTIONS</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredIncidents.map((inc) => {
-                const isCriticalOrHigh =
-                  inc.severity === IncidentSeverity.Critical || inc.severity === IncidentSeverity.High
+        <div style={{ borderTop: '1px solid var(--ed-border)', marginBottom: '48px' }}>
+          {filteredIncidents.map((inc, idx) => {
+            const indexStr = String(idx + 1).padStart(3, '0')
+            const isCritical = inc.severity === IncidentSeverity.Critical
+            const isHigh = inc.severity === IncidentSeverity.High
 
-                return (
-                  <tr
-                    key={inc.id}
+            return (
+              <div
+                key={inc.id}
+                className="ed-system-row"
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: '60px 140px 2fr 1.2fr 100px 100px 200px',
+                  alignItems: 'center',
+                  gap: '16px',
+                  padding: '16px 8px',
+                  borderBottom: '1px solid var(--ed-border)',
+                  borderLeft: isCritical
+                    ? '2px solid var(--ed-amber)'
+                    : isHigh
+                    ? '2px solid rgba(232, 145, 60, 0.5)'
+                    : undefined,
+                }}
+              >
+                {/* Index */}
+                <div className="ed-system-index">{indexStr}</div>
+
+                {/* Detected Timestamp */}
+                <div style={{ fontFamily: 'var(--ed-font-mono)', fontSize: '11px', color: 'var(--ed-text-muted)' }}>
+                  {new Date(inc.detectedAt).toLocaleDateString()}
+                  <div style={{ fontSize: '10px' }}>{new Date(inc.detectedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
+                </div>
+
+                {/* Title & Diagnostic Trigger */}
+                <div>
+                  <button
+                    type="button"
                     style={{
-                      borderLeft: isCriticalOrHigh
-                        ? `3px solid ${inc.severity === IncidentSeverity.Critical ? 'var(--cc-red)' : 'var(--cc-amber)'}`
-                        : undefined,
+                      background: 'transparent',
+                      border: 'none',
+                      color: 'var(--ed-text)',
+                      fontFamily: 'var(--ed-font-heading)',
+                      fontWeight: 600,
+                      fontSize: '14px',
+                      cursor: 'pointer',
+                      padding: 0,
+                      textAlign: 'left',
+                      letterSpacing: '0.01em',
                     }}
+                    onClick={() => setSelectedIncidentForDetails(inc)}
+                    title="Inspect incident telemetry"
                   >
-                    <td style={{ fontFamily: 'var(--cc-font-mono)', fontSize: '11px', color: '#888888' }}>
-                      {inc.id.substring(0, 8)}...
-                    </td>
-                    <td>
+                    {inc.title} ↗
+                  </button>
+                  <div style={{ fontSize: '11px', color: 'var(--ed-text-muted)', marginTop: '2px', fontFamily: 'var(--ed-font-mono)' }}>
+                    ID: {inc.id.substring(0, 8)}... | {incidentTypeLabels[inc.incidentType] || 'Other'}
+                  </div>
+                </div>
+
+                {/* Failed System */}
+                <div>
+                  <span style={{ fontFamily: 'var(--ed-font-mono)', fontSize: '12px', color: 'var(--ed-text-secondary)', fontWeight: 600 }}>
+                    {inc.failedSystemName}
+                  </span>
+                </div>
+
+                {/* Severity */}
+                <div>
+                  <StatusBadge type="incidentSeverity" value={inc.severity} />
+                </div>
+
+                {/* Status */}
+                <div>
+                  <StatusBadge type="incidentStatus" value={inc.status} />
+                </div>
+
+                {/* Command Actions */}
+                <div style={{ textAlign: 'right', display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
+                  <button
+                    type="button"
+                    className="ed-action-link"
+                    style={{ fontSize: '11px', color: 'var(--ed-amber)' }}
+                    onClick={() => onNavigate('ImpactAnalysis', inc.failedSystemId)}
+                    title="Simulate affected systems and operations"
+                  >
+                    [BLAST RADIUS]
+                  </button>
+                  {inc.status !== IncidentStatus.Closed && (
+                    <>
                       <button
                         type="button"
-                        style={{
-                          background: 'transparent',
-                          border: 'none',
-                          color: '#FFFFFF',
-                          fontWeight: 700,
-                          cursor: 'pointer',
-                          padding: 0,
-                          textAlign: 'left',
-                          fontFamily: 'inherit',
-                        }}
-                        onClick={() => setSelectedIncidentForDetails(inc)}
-                        title="View full incident telemetry"
+                        className="ed-action-link"
+                        style={{ fontSize: '11px' }}
+                        onClick={() => handleOpenStatusTransition(inc)}
+                        title="Transition lifecycle status"
                       >
-                        {inc.title} ↗
+                        [STATUS]
                       </button>
-                    </td>
-                    <td>
-                      <span style={{ fontFamily: 'var(--cc-font-mono)', fontWeight: 600 }}>
-                        {inc.failedSystemName}
-                      </span>
-                    </td>
-                    <td>
-                      <span className="cc-badge cc-badge-neutral">
-                        {incidentTypeLabels[inc.incidentType] || 'Other'}
-                      </span>
-                    </td>
-                    <td>
-                      <StatusBadge type="incidentSeverity" value={inc.severity} />
-                    </td>
-                    <td>
-                      <StatusBadge type="incidentStatus" value={inc.status} />
-                    </td>
-                    <td style={{ fontFamily: 'var(--cc-font-mono)', fontSize: '11px', color: '#888888' }}>
-                      {new Date(inc.detectedAt).toLocaleString()}
-                    </td>
-                    <td style={{ textAlign: 'right' }}>
-                      <div style={{ display: 'inline-flex', gap: '6px' }}>
-                        <button
-                          type="button"
-                          className="cc-button cc-button-sm cc-button-danger"
-                          onClick={() => onNavigate('ImpactAnalysis', inc.failedSystemId)}
-                          title="Simulate affected systems and operations"
-                        >
-                          BLAST RADIUS →
-                        </button>
-                        {inc.status !== IncidentStatus.Closed && (
-                          <button
-                            type="button"
-                            className="cc-button cc-button-sm"
-                            onClick={() => handleOpenStatusTransition(inc)}
-                            title="Transition lifecycle status"
-                          >
-                            STATUS
-                          </button>
-                        )}
-                        {inc.status !== IncidentStatus.Closed && (
-                          <button
-                            type="button"
-                            className="cc-button cc-button-sm"
-                            onClick={() => handleOpenEdit(inc)}
-                          >
-                            EDIT
-                          </button>
-                        )}
-                      </div>
-                    </td>
-                  </tr>
-                )
-              })}
-            </tbody>
-          </table>
+                      <button
+                        type="button"
+                        className="ed-action-link"
+                        style={{ fontSize: '11px' }}
+                        onClick={() => handleOpenEdit(inc)}
+                      >
+                        [EDIT]
+                      </button>
+                    </>
+                  )}
+                </div>
+              </div>
+            )
+          })}
         </div>
       )}
 
@@ -548,7 +567,7 @@ export default function IncidentsPage({ onNavigate }: IncidentsPageProps) {
               className="cc-button"
               onClick={() => setIsCreateOpen(false)}
             >
-              CANCEL
+              [ CANCEL ]
             </button>
             <button
               type="button"
@@ -556,7 +575,7 @@ export default function IncidentsPage({ onNavigate }: IncidentsPageProps) {
               disabled={submitting}
               onClick={handleCreateSubmit}
             >
-              {submitting ? 'RECORDING DISRUPTION...' : 'DECLARE DISRUPTION'}
+              {submitting ? 'RECORDING DISRUPTION...' : '[ DECLARE DISRUPTION ]'}
             </button>
           </>
         }
@@ -653,7 +672,7 @@ export default function IncidentsPage({ onNavigate }: IncidentsPageProps) {
       {/* Edit Incident Modal */}
       <Modal
         isOpen={editingIncident !== null}
-        title={`EDIT INCIDENT // ${editingIncident?.id.substring(0, 8) || ''}`}
+        title={`EDIT INCIDENT: ${editingIncident?.id.substring(0, 8) || ''}`}
         onClose={() => setEditingIncident(null)}
         footer={
           <>
@@ -662,7 +681,7 @@ export default function IncidentsPage({ onNavigate }: IncidentsPageProps) {
               className="cc-button"
               onClick={() => setEditingIncident(null)}
             >
-              CANCEL
+              [ CANCEL ]
             </button>
             <button
               type="button"
@@ -670,7 +689,7 @@ export default function IncidentsPage({ onNavigate }: IncidentsPageProps) {
               disabled={submitting}
               onClick={handleEditSubmit}
             >
-              {submitting ? 'SAVING...' : 'COMMIT EDITS'}
+              {submitting ? 'SAVING...' : '[ COMMIT EDITS ]'}
             </button>
           </>
         }
@@ -753,7 +772,7 @@ export default function IncidentsPage({ onNavigate }: IncidentsPageProps) {
               className="cc-button"
               onClick={() => setTransitioningIncident(null)}
             >
-              CANCEL
+              [ CANCEL ]
             </button>
             <button
               type="button"
@@ -761,7 +780,7 @@ export default function IncidentsPage({ onNavigate }: IncidentsPageProps) {
               disabled={submitting}
               onClick={handleStatusTransitionSubmit}
             >
-              {submitting ? 'TRANSITIONING...' : 'COMMIT STATUS CHANGE'}
+              {submitting ? 'TRANSITIONING...' : '[ COMMIT STATUS CHANGE ]'}
             </button>
           </>
         }

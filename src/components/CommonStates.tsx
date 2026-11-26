@@ -19,7 +19,7 @@ export function ErrorBanner({
   return (
     <div className="cc-error-banner">
       <div>
-        <strong style={{ marginRight: '8px' }}>[ALERT // ERROR]</strong>
+        <strong style={{ marginRight: '8px' }}>[ALERT: ERROR]</strong>
         {message}
       </div>
       {onDismiss && (
@@ -29,7 +29,7 @@ export function ErrorBanner({
           className="cc-button cc-button-sm cc-button-danger"
           style={{ padding: '2px 6px' }}
         >
-          DISMISS
+          [ DISMISS ]
         </button>
       )}
     </div>
@@ -47,7 +47,7 @@ export function EmptyState({
 }) {
   return (
     <div className="cc-empty-state">
-      <div className="cc-empty-title">// {title}</div>
+      <div className="cc-empty-title">{title}</div>
       <p className="cc-empty-desc">{description}</p>
       {action && <div>{action}</div>}
     </div>

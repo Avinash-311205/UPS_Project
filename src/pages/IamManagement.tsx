@@ -181,17 +181,19 @@ export default function IamManagementPage({ user, onNavigate }: IamManagementPag
   if (!isRoot) {
     return (
       <div className="cc-empty-state" style={{ padding: '60px 20px', textAlign: 'center' }}>
-        <div style={{ color: '#ef4444', fontFamily: 'var(--cc-font-mono)', fontSize: '16px', fontWeight: 700, marginBottom: '12px' }}>
-          [ACCESS DENIED // 403 FORBIDDEN]
+        <div style={{ color: 'var(--ed-amber)', fontFamily: 'var(--ed-font-mono)', fontSize: '14px', fontWeight: 700, marginBottom: '12px' }}>
+          [ACCESS DENIED: 403 FORBIDDEN]
         </div>
-        <div className="cc-empty-title">// ROOT PRIVILEGES REQUIRED</div>
-        <p className="cc-empty-desc" style={{ maxWidth: '480px', margin: '0 auto 24px' }}>
-          Identity & Access Management is restricted exclusively to Organization Root Accounts. Your authenticated
+        <div style={{ fontFamily: 'var(--ed-font-heading)', fontSize: '24px', fontWeight: 700, color: 'var(--ed-text)' }}>
+          ROOT PRIVILEGES REQUIRED
+        </div>
+        <p style={{ maxWidth: '480px', margin: '12px auto 24px', color: 'var(--ed-text-secondary)', fontSize: '13px', lineHeight: 1.6 }}>
+          Identity &amp; Access Management is restricted exclusively to Organization Root Accounts. Your authenticated
           credential is an IAM User account.
         </p>
         <button
           type="button"
-          className="cc-button cc-button-primary"
+          className="ed-action-link"
           onClick={() => onNavigate('Overview')}
         >
           [ RETURN TO COMMAND OVERVIEW ]
@@ -201,203 +203,187 @@ export default function IamManagementPage({ user, onNavigate }: IamManagementPag
   }
 
   return (
-    <div className="cc-page">
-      {/* Page Header */}
-      <div className="cc-page-header">
+    <div>
+      {/* Editorial Page Header */}
+      <div className="ed-section-header">
         <div>
-          <div className="cc-section-tag">// MODULE 07 — ACCESS GOVERNANCE</div>
-          <h1 className="cc-page-title">Identity & Access Management (IAM)</h1>
-          <p className="cc-page-subtitle">
-            Provision, monitor, and revoke workforce IAM accounts within your organization tenant workspace.
+          <span className="ed-section-num">07 // ACCESS GOVERNANCE</span>
+          <h1 className="ed-section-title">Identity &amp; Access Management</h1>
+          <p className="ed-section-desc">
+            Workforce credential lifecycle, security stamp revocation, and role-based access governance within this tenant partition.
           </p>
         </div>
 
-        <div className="cc-header-actions">
-          <button
-            type="button"
-            className="cc-button cc-button-primary"
-            onClick={() => {
-              setCreateForm({ username: '', email: '', password: '' })
-              setCreateError(null)
-              setIsCreateOpen(true)
-            }}
-          >
-            [ + PROVISION IAM USER ]
-          </button>
-        </div>
+        <button
+          type="button"
+          className="ed-action-link"
+          style={{ fontSize: '11px', letterSpacing: '0.1em' }}
+          onClick={() => {
+            setCreateForm({ username: '', email: '', password: '' })
+            setCreateError(null)
+            setIsCreateOpen(true)
+          }}
+        >
+          [ + PROVISION IAM USER ]
+        </button>
       </div>
 
-      {/* Root Organization Context Banner */}
+      {/* Root Authority Context Banner */}
       <div
-        className="cc-card"
         style={{
-          marginBottom: '20px',
-          background: 'linear-gradient(90deg, rgba(239,68,68,0.06) 0%, rgba(18,18,18,0.95) 100%)',
-          borderLeft: '3px solid #ef4444',
+          border: '1px solid var(--ed-border)',
+          borderLeft: '2px solid var(--ed-amber)',
+          background: 'var(--ed-surface)',
+          padding: '20px 24px',
+          marginBottom: '32px',
           display: 'flex',
           flexWrap: 'wrap',
           alignItems: 'center',
           justifyContent: 'space-between',
-          gap: '16px',
+          gap: '20px',
         }}
       >
-        <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
           <span
             style={{
               display: 'inline-flex',
               alignItems: 'center',
               justifyContent: 'center',
-              width: '32px',
-              height: '32px',
-              borderRadius: '4px',
-              background: 'rgba(239,68,68,0.15)',
-              color: '#ef4444',
-              fontFamily: 'var(--cc-font-mono)',
+              padding: '4px 10px',
+              border: '1px solid var(--ed-amber)',
+              background: 'rgba(232, 145, 60, 0.12)',
+              color: 'var(--ed-amber)',
+              fontFamily: 'var(--ed-font-mono)',
               fontWeight: 800,
-              fontSize: '12px',
+              fontSize: '11px',
+              letterSpacing: '0.1em',
             }}
           >
-            ROOT
+            [ROOT]
           </span>
           <div>
-            <div style={{ fontFamily: 'var(--cc-font-mono)', fontSize: '11px', color: '#aaaaaa', letterSpacing: '0.05em' }}>
+            <div style={{ fontFamily: 'var(--ed-font-mono)', fontSize: '10px', color: 'var(--ed-text-muted)', letterSpacing: '0.1em', textTransform: 'uppercase' }}>
               AUTHENTICATED ROOT AUTHORITY
             </div>
-            <div style={{ fontFamily: 'var(--cc-font-mono)', fontSize: '13px', color: '#ffffff', fontWeight: 600 }}>
+            <div style={{ fontFamily: 'var(--ed-font-mono)', fontSize: '14px', color: 'var(--ed-text)', fontWeight: 600, marginTop: '2px' }}>
               {user.name} ({user.email})
             </div>
           </div>
         </div>
 
-        <div style={{ display: 'flex', gap: '24px', alignItems: 'center' }}>
+        <div style={{ display: 'flex', gap: '32px', alignItems: 'center' }}>
           <div>
-            <div style={{ fontFamily: 'var(--cc-font-mono)', fontSize: '10px', color: '#666666' }}>TENANT SCOPE</div>
-            <div style={{ fontFamily: 'var(--cc-font-mono)', fontSize: '11px', color: '#cccccc' }}>
+            <div style={{ fontFamily: 'var(--ed-font-mono)', fontSize: '10px', color: 'var(--ed-text-muted)', letterSpacing: '0.08em' }}>TENANT SCOPE</div>
+            <div style={{ fontFamily: 'var(--ed-font-mono)', fontSize: '12px', color: 'var(--ed-text)' }}>
               {user.tenantId ? user.tenantId : 'Organization Workspace'}
             </div>
           </div>
           <div>
-            <div style={{ fontFamily: 'var(--cc-font-mono)', fontSize: '10px', color: '#666666' }}>SECURITY PROTOCOL</div>
-            <div style={{ fontFamily: 'var(--cc-font-mono)', fontSize: '11px', color: 'var(--cc-green)' }}>
+            <div style={{ fontFamily: 'var(--ed-font-mono)', fontSize: '10px', color: 'var(--ed-text-muted)', letterSpacing: '0.08em' }}>SECURITY PROTOCOL</div>
+            <div style={{ fontFamily: 'var(--ed-font-mono)', fontSize: '12px', color: 'var(--ed-teal-light)', fontWeight: 700 }}>
               STRICT SEC_STAMP VERIFIED
             </div>
           </div>
         </div>
       </div>
 
-      {/* Metrics Summary Grid */}
-      <div className="cc-metrics-grid" style={{ marginBottom: '24px' }}>
-        <div className="cc-metric-card">
-          <div className="cc-metric-header">
-            <span className="cc-metric-label">TOTAL WORKFORCE</span>
-            <span className="cc-metric-sublabel">IAM DIRECTORY</span>
+      {/* Editorial Metrics Strip */}
+      <div
+        style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+          gap: '24px',
+          borderTop: '1px solid var(--ed-border)',
+          borderBottom: '1px solid var(--ed-border)',
+          padding: '24px 0',
+          marginBottom: '32px',
+        }}
+      >
+        <div>
+          <div className="ed-stat-label">TOTAL WORKFORCE</div>
+          <div className="ed-stat-massive" style={{ margin: '8px 0' }}>{iamUsers.length}</div>
+          <div style={{ fontFamily: 'var(--ed-font-mono)', fontSize: '11px', color: 'var(--ed-text-muted)' }}>
+            Assigned to this tenant
           </div>
-          <div className="cc-metric-value">{iamUsers.length}</div>
-          <div className="cc-metric-detail">Assigned to this tenant</div>
         </div>
 
-        <div className="cc-metric-card">
-          <div className="cc-metric-header">
-            <span className="cc-metric-label">ACTIVE OPERATORS</span>
-            <span className="cc-metric-sublabel">AUTHENTICATED</span>
-          </div>
-          <div className="cc-metric-value" style={{ color: 'var(--cc-green)' }}>
+        <div>
+          <div className="ed-stat-label">ACTIVE OPERATORS</div>
+          <div className="ed-stat-massive" style={{ color: 'var(--ed-teal-light)', margin: '8px 0' }}>
             {activeCount}
           </div>
-          <div className="cc-metric-detail">Permitted to sign in</div>
+          <div style={{ fontFamily: 'var(--ed-font-mono)', fontSize: '11px', color: 'var(--ed-text-muted)' }}>
+            Permitted to sign in
+          </div>
         </div>
 
-        <div className="cc-metric-card">
-          <div className="cc-metric-header">
-            <span className="cc-metric-label">INACTIVE / DISABLED</span>
-            <span className="cc-metric-sublabel">BLOCKED</span>
-          </div>
-          <div className="cc-metric-value" style={{ color: inactiveCount > 0 ? '#ef4444' : '#888888' }}>
+        <div>
+          <div className="ed-stat-label">INACTIVE / DISABLED</div>
+          <div className="ed-stat-massive" style={{ color: inactiveCount > 0 ? 'var(--ed-amber)' : 'var(--ed-text-muted)', margin: '8px 0' }}>
             {inactiveCount}
           </div>
-          <div className="cc-metric-detail">Tokens revoked immediately</div>
+          <div style={{ fontFamily: 'var(--ed-font-mono)', fontSize: '11px', color: 'var(--ed-text-muted)' }}>
+            Tokens revoked immediately
+          </div>
         </div>
 
-        <div className="cc-metric-card">
-          <div className="cc-metric-header">
-            <span className="cc-metric-label">IAM AUTHORIZATION</span>
-            <span className="cc-metric-sublabel">POLICY MATRIX</span>
+        <div>
+          <div className="ed-stat-label">AUTHORIZATION POLICY</div>
+          <div style={{ fontFamily: 'var(--ed-font-heading)', fontSize: '24px', fontWeight: 700, color: 'var(--ed-text)', marginTop: '12px', marginBottom: '8px' }}>
+            RootOnly
           </div>
-          <div className="cc-metric-value" style={{ fontSize: '18px', color: '#60a5fa', paddingTop: '4px' }}>
-            RootOnly Policy
+          <div style={{ fontFamily: 'var(--ed-font-mono)', fontSize: '11px', color: 'var(--ed-teal-light)' }}>
+            Strict 403 enforcement
           </div>
-          <div className="cc-metric-detail">Strict 403 enforcement</div>
         </div>
       </div>
 
-      {/* Alerts & Notifications */}
+      {/* Alerts */}
       {error && <ErrorBanner message={error} onDismiss={() => setError(null)} />}
       {successMessage && (
         <div
-          className="cc-card"
-          style={{
-            marginBottom: '16px',
-            background: 'rgba(34,197,94,0.08)',
-            borderLeft: '3px solid var(--cc-green)',
-            padding: '12px 16px',
-            fontFamily: 'var(--cc-font-mono)',
-            fontSize: '12px',
-            color: '#4ade80',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-          }}
+          className="cc-badge cc-badge-green"
+          style={{ width: '100%', padding: '12px 16px', marginBottom: '20px', boxSizing: 'border-box' }}
         >
-          <span>[SYSTEM // SUCCESS] {successMessage}</span>
-          <button
-            type="button"
-            className="cc-button cc-button-sm"
-            onClick={() => setSuccessMessage(null)}
-            style={{ padding: '2px 6px', fontSize: '10px' }}
-          >
-            DISMISS
-          </button>
+          [SUCCESS] {successMessage}
         </div>
       )}
 
-      {/* Filter and Search Bar */}
-      <div className="cc-filter-bar" style={{ marginBottom: '16px' }}>
-        <div className="cc-search-box">
-          <span className="cc-search-icon">🔍</span>
-          <input
-            type="text"
-            className="cc-input"
-            placeholder="Search by username or email..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
-        </div>
+      {/* Editorial Filter Strip */}
+      <div className="ed-filter-strip">
+        <input
+          type="text"
+          className="ed-filter-input"
+          placeholder="SEARCH USERNAME OR EMAIL..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+        />
 
-        <div className="cc-filter-group">
-          <label className="cc-filter-label" htmlFor="iam-status-filter">STATUS:</label>
-          <select
-            id="iam-status-filter"
-            className="cc-select"
-            value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value as 'ALL' | 'ACTIVE' | 'INACTIVE')}
-          >
-            <option value="ALL">All Statuses ({iamUsers.length})</option>
-            <option value="ACTIVE">Active ({activeCount})</option>
-            <option value="INACTIVE">Inactive ({inactiveCount})</option>
-          </select>
-        </div>
+        <select
+          className="ed-filter-select"
+          value={statusFilter}
+          onChange={(e) => setStatusFilter(e.target.value as 'ALL' | 'ACTIVE' | 'INACTIVE')}
+        >
+          <option value="ALL">ALL STATUSES ({iamUsers.length})</option>
+          <option value="ACTIVE">ACTIVE ({activeCount})</option>
+          <option value="INACTIVE">INACTIVE ({inactiveCount})</option>
+        </select>
 
         <button
           type="button"
-          className="cc-button cc-button-sm"
+          className="ed-action-link"
+          style={{ fontSize: '11px' }}
           onClick={loadUsers}
-          title="Reload workforce directory"
         >
-          [ REFRESH ]
+          [REFRESH DIRECTORY]
         </button>
+
+        <div style={{ marginLeft: 'auto', fontFamily: 'var(--ed-font-mono)', fontSize: '11px', color: 'var(--ed-text-muted)' }}>
+          WORKFORCE: <span style={{ color: 'var(--ed-text)', fontWeight: 700 }}>{filteredUsers.length}</span> / {iamUsers.length}
+        </div>
       </div>
 
-      {/* Data Table */}
+      {/* Workforce Directory */}
       {loading ? (
         <LoadingSpinner label="LOADING IAM WORKFORCE DIRECTORY..." />
       ) : filteredUsers.length === 0 ? (
@@ -411,7 +397,7 @@ export default function IamManagementPage({ user, onNavigate }: IamManagementPag
           action={
             <button
               type="button"
-              className="cc-button cc-button-primary"
+              className="ed-action-link"
               onClick={() => {
                 setCreateForm({ username: '', email: '', password: '' })
                 setCreateError(null)
@@ -423,350 +409,265 @@ export default function IamManagementPage({ user, onNavigate }: IamManagementPag
           }
         />
       ) : (
-        <div className="cc-table-container">
-          <table className="cc-table">
-            <thead>
-              <tr>
-                <th>USER IDENTIFIER</th>
-                <th>CORPORATE EMAIL</th>
-                <th>ACCOUNT TYPE</th>
-                <th>STATUS</th>
-                <th>PROVISIONED DATE</th>
-                <th style={{ textAlign: 'right' }}>ACTIONS</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredUsers.map((item) => {
-                const isActive = item.status === UserStatus.Active
-                return (
-                  <tr key={item.id}>
-                    <td>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <span
-                          style={{
-                            display: 'inline-block',
-                            width: '24px',
-                            height: '24px',
-                            lineHeight: '24px',
-                            textAlign: 'center',
-                            borderRadius: '3px',
-                            background: '#222222',
-                            color: '#60a5fa',
-                            fontFamily: 'var(--cc-font-mono)',
-                            fontSize: '10px',
-                            fontWeight: 700,
-                          }}
-                        >
-                          {item.username.slice(0, 2).toUpperCase()}
-                        </span>
-                        <div>
-                          <div style={{ fontWeight: 600, color: '#ffffff' }}>{item.username}</div>
-                          <div style={{ fontFamily: 'var(--cc-font-mono)', fontSize: '10px', color: '#666666' }}>
-                            ID: #{item.id}
-                          </div>
-                        </div>
-                      </div>
-                    </td>
+        <div style={{ borderTop: '1px solid var(--ed-border)', marginBottom: '48px' }}>
+          {filteredUsers.map((item, idx) => {
+            const indexStr = String(idx + 1).padStart(3, '0')
+            const isActive = item.status === UserStatus.Active
 
-                    <td>
-                      <span style={{ fontFamily: 'var(--cc-font-mono)', fontSize: '12px', color: '#cccccc' }}>
-                        {item.email}
-                      </span>
-                    </td>
+            return (
+              <div
+                key={item.id}
+                className="ed-system-row"
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: '50px 2fr 2fr 100px 100px 140px 200px',
+                  alignItems: 'center',
+                  gap: '16px',
+                  padding: '16px 8px',
+                  borderBottom: '1px solid var(--ed-border)',
+                }}
+              >
+                {/* Index */}
+                <div className="ed-system-index">{indexStr}</div>
 
-                    <td>
-                      <span
-                        style={{
-                          display: 'inline-block',
-                          padding: '2px 8px',
-                          borderRadius: '3px',
-                          fontSize: '10px',
-                          fontWeight: 700,
-                          fontFamily: 'var(--cc-font-mono)',
-                          letterSpacing: '0.05em',
-                          background: 'rgba(59, 130, 246, 0.15)',
-                          color: '#60a5fa',
-                          border: '1px solid rgba(59, 130, 246, 0.3)',
-                        }}
-                      >
-                        IAM USER
-                      </span>
-                    </td>
+                {/* Username & ID */}
+                <div>
+                  <div style={{ fontFamily: 'var(--ed-font-heading)', fontWeight: 600, fontSize: '15px', color: 'var(--ed-text)' }}>
+                    {item.username}
+                  </div>
+                  <div style={{ fontFamily: 'var(--ed-font-mono)', fontSize: '11px', color: 'var(--ed-text-muted)', marginTop: '2px' }}>
+                    ID: #{item.id}
+                  </div>
+                </div>
 
-                    <td>
-                      <span className={`cc-badge ${isActive ? 'cc-badge-green' : 'cc-badge-neutral'}`}>
-                        <span
-                          className="cc-pulse-dot"
-                          style={{ backgroundColor: isActive ? 'var(--cc-green)' : '#ef4444' }}
-                        />
-                        {isActive ? 'ACTIVE' : 'INACTIVE'}
-                      </span>
-                    </td>
+                {/* Corporate Email */}
+                <div>
+                  <span style={{ fontFamily: 'var(--ed-font-mono)', fontSize: '12px', color: 'var(--ed-text-secondary)' }}>
+                    {item.email}
+                  </span>
+                </div>
 
-                    <td>
-                      <span style={{ fontFamily: 'var(--cc-font-mono)', fontSize: '11px', color: '#888888' }}>
-                        {new Date(item.createdAt).toLocaleDateString()}{' '}
-                        {new Date(item.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                      </span>
-                    </td>
+                {/* Account Type */}
+                <div>
+                  <span
+                    style={{
+                      display: 'inline-block',
+                      padding: '2px 8px',
+                      fontSize: '10px',
+                      fontWeight: 700,
+                      fontFamily: 'var(--ed-font-mono)',
+                      letterSpacing: '0.05em',
+                      background: 'rgba(46, 107, 114, 0.15)',
+                      color: 'var(--ed-teal-light)',
+                      border: '1px solid rgba(46, 107, 114, 0.4)',
+                    }}
+                  >
+                    IAM USER
+                  </span>
+                </div>
 
-                    <td style={{ textAlign: 'right' }}>
-                      <div style={{ display: 'inline-flex', gap: '8px' }}>
-                        <button
-                          type="button"
-                          className={`cc-button cc-button-sm ${isActive ? 'cc-button-danger' : 'cc-button-primary'}`}
-                          onClick={() => setStatusTargetUser(item)}
-                          title={isActive ? 'Deactivate user' : 'Reactivate user'}
-                        >
-                          {isActive ? 'DEACTIVATE' : 'ACTIVATE'}
-                        </button>
+                {/* Status */}
+                <div>
+                  <span
+                    style={{
+                      display: 'inline-block',
+                      padding: '2px 8px',
+                      fontSize: '10px',
+                      fontWeight: 700,
+                      fontFamily: 'var(--ed-font-mono)',
+                      letterSpacing: '0.05em',
+                      background: isActive ? 'rgba(46, 107, 114, 0.2)' : 'rgba(232, 145, 60, 0.2)',
+                      color: isActive ? 'var(--ed-teal-light)' : 'var(--ed-amber)',
+                      border: isActive ? '1px solid rgba(46, 107, 114, 0.5)' : '1px solid rgba(232, 145, 60, 0.5)',
+                    }}
+                  >
+                    {isActive ? 'ACTIVE' : 'INACTIVE'}
+                  </span>
+                </div>
 
-                        <button
-                          type="button"
-                          className="cc-button cc-button-sm"
-                          onClick={() => {
-                            setResetTargetUser(item)
-                            setNewPassword('')
-                            setResetError(null)
-                          }}
-                          title="Reset user credentials"
-                        >
-                          RESET PWD
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                )
-              })}
-            </tbody>
-          </table>
+                {/* Provisioned Date */}
+                <div style={{ fontFamily: 'var(--ed-font-mono)', fontSize: '11px', color: 'var(--ed-text-muted)' }}>
+                  {item.createdAt ? new Date(item.createdAt).toLocaleDateString() : 'N/A'}
+                </div>
+
+                {/* Actions */}
+                <div style={{ textAlign: 'right', display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
+                  <button
+                    type="button"
+                    className="ed-action-link"
+                    style={{ fontSize: '11px' }}
+                    onClick={() => {
+                      setResetTargetUser(item)
+                      setNewPassword('')
+                      setResetError(null)
+                    }}
+                  >
+                    [RESET SEC]
+                  </button>
+                  <button
+                    type="button"
+                    className="ed-action-link"
+                    style={{ fontSize: '11px', color: isActive ? 'var(--ed-amber)' : 'var(--ed-teal-light)' }}
+                    onClick={() => setStatusTargetUser(item)}
+                  >
+                    {isActive ? '[REVOKE]' : '[ENABLE]'}
+                  </button>
+                </div>
+              </div>
+            )
+          })}
         </div>
       )}
 
-      {/* ========================================================= */}
-      {/* MODAL 1: PROVISION IAM USER                              */}
-      {/* ========================================================= */}
+      {/* Provision IAM User Modal */}
       <Modal
         isOpen={isCreateOpen}
-        title="PROVISION NEW IAM WORKFORCE ACCOUNT"
+        title="PROVISION WORKFORCE IAM USER"
         onClose={() => setIsCreateOpen(false)}
         footer={
-          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
+          <>
             <button
               type="button"
               className="cc-button"
               onClick={() => setIsCreateOpen(false)}
-              disabled={createSubmitting}
             >
-              CANCEL
+              [ CANCEL ]
             </button>
             <button
               type="button"
               className="cc-button cc-button-primary"
-              onClick={handleCreateSubmit}
               disabled={createSubmitting}
+              onClick={handleCreateSubmit}
             >
-              {createSubmitting ? 'PROVISIONING...' : '[ PROVISION ACCOUNT ]'}
+              {createSubmitting ? 'PROVISIONING...' : '[ PROVISION CREDENTIAL ]'}
             </button>
-          </div>
+          </>
         }
       >
-        <form onSubmit={handleCreateSubmit}>
-          <p style={{ fontSize: '12px', color: '#888888', marginBottom: '16px', lineHeight: 1.5 }}>
-            Provision an independently authenticated IAM workforce user. The account will inherit this organization's
-            Tenant ID and receive operational access to modules without Root governance privileges.
-          </p>
+        <form onSubmit={handleCreateSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+          {createError && <div className="cc-form-error">[VALIDATION ERROR] {createError}</div>}
 
-          {createError && <ErrorBanner message={createError} onDismiss={() => setCreateError(null)} />}
-
-          <div className="cc-form-group" style={{ marginBottom: '14px' }}>
-            <label className="cc-form-label" htmlFor="iam-username">OPERATOR USERNAME</label>
+          <div className="cc-form-group">
+            <label className="cc-form-label">OPERATOR USERNAME *</label>
             <input
-              id="iam-username"
               type="text"
               className="cc-input"
-              placeholder="e.g., dispatch_john"
+              required
+              minLength={2}
+              maxLength={50}
+              placeholder="e.g. ops_marcus"
               value={createForm.username}
               onChange={(e) => setCreateForm({ ...createForm, username: e.target.value })}
-              required
-              autoFocus
             />
           </div>
 
-          <div className="cc-form-group" style={{ marginBottom: '14px' }}>
-            <label className="cc-form-label" htmlFor="iam-email">CORPORATE EMAIL ADDRESS</label>
+          <div className="cc-form-group">
+            <label className="cc-form-label">CORPORATE EMAIL ADDRESS *</label>
             <input
-              id="iam-email"
               type="email"
               className="cc-input"
-              placeholder="e.g., john.doe@carrier.com"
+              required
+              placeholder="e.g. marcus@enterprise-logistics.com"
               value={createForm.email}
               onChange={(e) => setCreateForm({ ...createForm, email: e.target.value })}
-              required
             />
-            <span style={{ fontFamily: 'var(--cc-font-mono)', fontSize: '10px', color: '#666666' }}>
-              Must be unique globally across the entire platform.
-            </span>
           </div>
 
-          <div className="cc-form-group" style={{ marginBottom: '14px' }}>
-            <label className="cc-form-label" htmlFor="iam-password">INITIAL TEMPORARY PASSWORD</label>
+          <div className="cc-form-group">
+            <label className="cc-form-label">INITIAL ACCESS PASSWORD *</label>
             <input
-              id="iam-password"
               type="password"
               className="cc-input"
-              placeholder="Minimum 8 characters"
+              required
+              minLength={8}
+              placeholder="Min 8 characters..."
               value={createForm.password}
               onChange={(e) => setCreateForm({ ...createForm, password: e.target.value })}
-              required
             />
-            <span style={{ fontFamily: 'var(--cc-font-mono)', fontSize: '10px', color: '#666666' }}>
-              Cryptographically hashed via PBKDF2 before storage. Plaintext credentials are never saved.
-            </span>
+            <div style={{ fontSize: '10px', color: 'var(--cc-text-muted)', fontFamily: 'var(--cc-font-mono)', marginTop: '4px' }}>
+              Minimum 8 characters. Password will be hashed using HMAC-SHA256 with tenant security stamp salt.
+            </div>
           </div>
         </form>
       </Modal>
 
-      {/* ========================================================= */}
-      {/* MODAL 2: CONFIRM STATUS TOGGLE                           */}
-      {/* ========================================================= */}
+      {/* Confirm Status Toggle Modal */}
       <Modal
         isOpen={statusTargetUser !== null}
-        title={
-          statusTargetUser?.status === UserStatus.Active
-            ? 'CONFIRM ACCOUNT DEACTIVATION'
-            : 'CONFIRM ACCOUNT REACTIVATION'
-        }
+        title={statusTargetUser?.status === UserStatus.Active ? 'DEACTIVATE IAM USER' : 'ACTIVATE IAM USER'}
         onClose={() => setStatusTargetUser(null)}
         footer={
-          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
+          <>
             <button
               type="button"
               className="cc-button"
               onClick={() => setStatusTargetUser(null)}
-              disabled={statusSubmitting}
             >
-              CANCEL
+              [ CANCEL ]
             </button>
             <button
               type="button"
-              className={`cc-button ${
-                statusTargetUser?.status === UserStatus.Active ? 'cc-button-danger' : 'cc-button-primary'
-              }`}
-              onClick={handleStatusToggle}
+              className={`cc-button ${statusTargetUser?.status === UserStatus.Active ? 'cc-button-danger' : 'cc-button-primary'}`}
               disabled={statusSubmitting}
+              onClick={handleStatusToggle}
             >
-              {statusSubmitting
-                ? 'UPDATING...'
-                : statusTargetUser?.status === UserStatus.Active
-                ? '[ DEACTIVATE USER ]'
-                : '[ REACTIVATE USER ]'}
+              {statusSubmitting ? 'UPDATING...' : statusTargetUser?.status === UserStatus.Active ? '[ CONFIRM DEACTIVATION ]' : '[ CONFIRM ACTIVATION ]'}
             </button>
-          </div>
+          </>
         }
       >
-        <div>
-          <p style={{ fontSize: '13px', color: '#cccccc', marginBottom: '14px', lineHeight: 1.6 }}>
-            {statusTargetUser?.status === UserStatus.Active ? (
-              <>
-                Are you sure you want to <strong>DEACTIVATE</strong> user{' '}
-                <span style={{ color: '#ffffff', fontWeight: 700 }}>{statusTargetUser?.username}</span> (
-                {statusTargetUser?.email})?
-              </>
-            ) : (
-              <>
-                Are you sure you want to <strong>REACTIVATE</strong> user{' '}
-                <span style={{ color: '#ffffff', fontWeight: 700 }}>{statusTargetUser?.username}</span> (
-                {statusTargetUser?.email})?
-              </>
-            )}
-          </p>
-
-          {statusTargetUser?.status === UserStatus.Active && (
-            <div
-              style={{
-                background: 'rgba(239,68,68,0.1)',
-                border: '1px solid rgba(239,68,68,0.3)',
-                padding: '12px',
-                borderRadius: '4px',
-                fontFamily: 'var(--cc-font-mono)',
-                fontSize: '11px',
-                color: '#f87171',
-                lineHeight: 1.5,
-              }}
-            >
-              [SECURITY ADVISORY] Deactivating this user will regenerate their internal security stamp immediately.
-              All active login sessions and JWT tokens will fail server-side token validation and be revoked across
-              all active connections.
-            </div>
-          )}
-        </div>
+        <p style={{ margin: 0, fontSize: '13px', lineHeight: 1.6 }}>
+          Are you sure you want to {statusTargetUser?.status === UserStatus.Active ? 'deactivate' : 'activate'} workforce credential{' '}
+          <strong>'{statusTargetUser?.username}'</strong>?
+          <br /><br />
+          {statusTargetUser?.status === UserStatus.Active
+            ? 'Deactivation immediately invalidates active session tokens via the token validation query filter. Subsequent requests will return 401 Unauthorized.'
+            : 'Activation allows the user to sign in with their active password and tenant context.'}
+        </p>
       </Modal>
 
-      {/* ========================================================= */}
-      {/* MODAL 3: RESET PASSWORD                                  */}
-      {/* ========================================================= */}
+      {/* Reset Password Modal */}
       <Modal
         isOpen={resetTargetUser !== null}
-        title={`RESET CREDENTIALS // ${resetTargetUser?.username.toUpperCase()}`}
+        title={`RESET IAM CREDENTIAL: ${resetTargetUser?.username || ''}`}
         onClose={() => setResetTargetUser(null)}
         footer={
-          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
+          <>
             <button
               type="button"
               className="cc-button"
               onClick={() => setResetTargetUser(null)}
-              disabled={resetSubmitting}
             >
-              CANCEL
+              [ CANCEL ]
             </button>
             <button
               type="button"
-              className="cc-button cc-button-primary"
-              onClick={handleResetPasswordSubmit}
+              className="cc-button cc-button-danger"
               disabled={resetSubmitting}
+              onClick={handleResetPasswordSubmit}
             >
-              {resetSubmitting ? 'RESETTING...' : '[ SET NEW PASSWORD ]'}
+              {resetSubmitting ? 'RESETTING...' : '[ COMMIT PASSWORD RESET ]'}
             </button>
-          </div>
+          </>
         }
       >
-        <form onSubmit={handleResetPasswordSubmit}>
-          <p style={{ fontSize: '13px', color: '#cccccc', marginBottom: '14px', lineHeight: 1.5 }}>
-            Assign a new secure password for{' '}
-            <strong style={{ color: '#ffffff' }}>{resetTargetUser?.username}</strong> ({resetTargetUser?.email}).
-          </p>
+        <form onSubmit={handleResetPasswordSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+          {resetError && <div className="cc-form-error">[RESET ERROR] {resetError}</div>}
 
-          {resetError && <ErrorBanner message={resetError} onDismiss={() => setResetError(null)} />}
-
-          <div className="cc-form-group" style={{ marginBottom: '14px' }}>
-            <label className="cc-form-label" htmlFor="iam-reset-newpassword">NEW PASSWORD</label>
+          <div className="cc-form-group">
+            <label className="cc-form-label">NEW ACCESS PASSWORD *</label>
             <input
-              id="iam-reset-newpassword"
               type="password"
               className="cc-input"
-              placeholder="Minimum 8 characters"
+              required
+              minLength={8}
+              placeholder="Min 8 characters..."
               value={newPassword}
               onChange={(e) => setNewPassword(e.target.value)}
-              required
-              autoFocus
             />
-          </div>
-
-          <div
-            style={{
-              background: 'rgba(59,130,246,0.1)',
-              border: '1px solid rgba(59,130,246,0.3)',
-              padding: '10px',
-              borderRadius: '4px',
-              fontFamily: 'var(--cc-font-mono)',
-              fontSize: '11px',
-              color: '#93c5fd',
-              lineHeight: 1.5,
-            }}
-          >
-            [POLICY] Resetting credentials regenerates the security stamp. Any active session tokens will be
-            invalidated immediately, forcing the operator to authenticate with the new password.
+            <div style={{ fontSize: '10px', color: 'var(--cc-text-muted)', fontFamily: 'var(--cc-font-mono)', marginTop: '4px' }}>
+              Minimum 8 characters. Resetting will immediately regenerate SecurityStamp and invalidate all current JWT tokens for this user.
+            </div>
           </div>
         </form>
       </Modal>

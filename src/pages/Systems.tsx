@@ -13,11 +13,10 @@ import {
   systemTypeLabels,
   systemCriticalityLabels,
   systemEnvironmentLabels,
-  systemLifecycleStatusLabels,
 } from '../types'
 import StatusBadge from '../components/StatusBadge'
 import Modal from '../components/Modal'
-import { LoadingSpinner, ErrorBanner, EmptyState } from '../components/CommonStates'
+import { LoadingSpinner, ErrorBanner } from '../components/CommonStates'
 
 interface SystemsPageProps {
   onNavigate: (page: Page, systemId?: string) => void
@@ -191,308 +190,337 @@ export default function SystemsPage({ onNavigate }: SystemsPageProps) {
 
   return (
     <div>
-      <div className="cc-page-header">
-        <div className="cc-page-title-group">
-          <h1>02 // LOGISTICS SYSTEMS REGISTRY</h1>
-          <p>Inventory, technical classification, criticality tiers and operational state of logistics systems.</p>
+      {/* Editorial Page Header */}
+      <div className="ed-page-header">
+        <div>
+          <div className="ed-section-tag">
+            <span>MODULE 02</span>
+            <span style={{ opacity: 0.3 }}>/</span>
+            <span>NODE DIRECTORY &amp; TECHNICAL REGISTRY</span>
+          </div>
+          <h1 className="ed-page-title">Logistics Systems Registry</h1>
+          <p className="ed-page-subtitle">
+            Technical asset inventory, classification tiers, and operational lifecycle state of catalogued logistics infrastructure.
+          </p>
         </div>
 
         <button
           type="button"
-          className="cc-button cc-button-primary"
+          className="ed-button ed-button-primary"
           onClick={handleOpenRegister}
         >
-          + REGISTER NEW SYSTEM
+          [ + REGISTER NEW SYSTEM ]
         </button>
       </div>
 
       {actionSuccess && (
         <div
-          className="cc-badge cc-badge-green"
-          style={{ width: '100%', padding: '10px 14px', marginBottom: '16px', boxSizing: 'border-box' }}
+          className="ed-badge ed-badge-teal"
+          style={{ width: '100%', padding: '10px 16px', marginBottom: '20px', boxSizing: 'border-box' }}
         >
-          ✓ {actionSuccess}
+          [SUCCESS] {actionSuccess}
         </div>
       )}
 
       {error && <ErrorBanner message={error} onDismiss={() => setError(null)} />}
 
-      {/* Toolbar & Filters */}
-      <div className="cc-toolbar">
-        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center' }}>
-          <div className="cc-search-box">
-            <span style={{ color: '#555555', fontFamily: 'var(--cc-font-mono)' }}>⌕</span>
-            <input
-              type="text"
-              placeholder="SEARCH SYSTEMS..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
-          </div>
-
-          <select
-            className="cc-select"
-            style={{ width: 'auto' }}
-            value={typeFilter}
-            onChange={(e) => setTypeFilter(e.target.value)}
-          >
-            <option value="all">ALL SYSTEM TYPES</option>
-            {Object.entries(systemTypeLabels).map(([key, label]) => (
-              <option key={key} value={key}>
-                {label}
-              </option>
-            ))}
-          </select>
-
-          <select
-            className="cc-select"
-            style={{ width: 'auto' }}
-            value={critFilter}
-            onChange={(e) => setCritFilter(e.target.value)}
-          >
-            <option value="all">ALL CRITICALITY</option>
-            {Object.entries(systemCriticalityLabels).map(([key, label]) => (
-              <option key={key} value={key}>
-                {label.toUpperCase()}
-              </option>
-            ))}
-          </select>
-
-          <label
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '6px',
-              fontFamily: 'var(--cc-font-mono)',
-              fontSize: '11px',
-              color: '#888888',
-              cursor: 'pointer',
-              userSelect: 'none',
-            }}
-          >
-            <input
-              type="checkbox"
-              checked={includeInactive}
-              onChange={(e) => setIncludeInactive(e.target.checked)}
-            />
-            SHOW INACTIVE
-          </label>
-        </div>
-
-        <div style={{ fontFamily: 'var(--cc-font-mono)', fontSize: '11px', color: '#888888' }}>
-          MATCHING: <strong>{filteredSystems.length}</strong> / {systems.length}
-        </div>
-      </div>
-
-      {/* Detailed System Drawer if one is selected */}
-      {selectedSystemForDetails && (
-        <div className="cc-drawer">
-          <div className="cc-drawer-header">
-            <div>
-              <span className="cc-brand-badge" style={{ marginRight: '8px' }}>
-                SYSTEM DETAILS
-              </span>
-              <strong style={{ fontSize: '14px', letterSpacing: '0.05em' }}>
-                {selectedSystemForDetails.name}
-              </strong>
-            </div>
-
-            <div style={{ display: 'flex', gap: '8px' }}>
-              <button
-                type="button"
-                className="cc-button cc-button-sm"
-                onClick={() => onNavigate('ImpactAnalysis', selectedSystemForDetails.id)}
-              >
-                RUN BLAST RADIUS →
-              </button>
-              <button
-                type="button"
-                className="cc-button cc-button-sm"
-                onClick={() => handleOpenEdit(selectedSystemForDetails)}
-              >
-                EDIT SYSTEM
-              </button>
-              <button
-                type="button"
-                className="cc-button cc-button-sm"
-                onClick={() => setSelectedSystemForDetails(null)}
-              >
-                ✕ CLOSE
-              </button>
-            </div>
-          </div>
-
-          <div className="cc-grid-details">
-            <div className="cc-detail-item">
-              <span className="cc-detail-label">SYSTEM ID:</span>
-              <span className="cc-detail-value" style={{ fontFamily: 'var(--cc-font-mono)', fontSize: '11px' }}>
-                {selectedSystemForDetails.id}
-              </span>
-            </div>
-            <div className="cc-detail-item">
-              <span className="cc-detail-label">CLASSIFICATION:</span>
-              <span className="cc-detail-value">
-                {systemTypeLabels[selectedSystemForDetails.systemType]}
-              </span>
-            </div>
-            <div className="cc-detail-item">
-              <span className="cc-detail-label">CRITICALITY TIER:</span>
-              <span className="cc-detail-value">
-                <StatusBadge type="systemCriticality" value={selectedSystemForDetails.criticality} />
-              </span>
-            </div>
-            <div className="cc-detail-item">
-              <span className="cc-detail-label">ENVIRONMENT:</span>
-              <span className="cc-detail-value">
-                {systemEnvironmentLabels[selectedSystemForDetails.environment]}
-              </span>
-            </div>
-            <div className="cc-detail-item">
-              <span className="cc-detail-label">LIFECYCLE STATUS:</span>
-              <span className="cc-detail-value">
-                <StatusBadge type="systemStatus" value={selectedSystemForDetails.lifecycleStatus} />
-              </span>
-            </div>
-            <div className="cc-detail-item">
-              <span className="cc-detail-label">REGISTERED AT:</span>
-              <span className="cc-detail-value" style={{ fontFamily: 'var(--cc-font-mono)' }}>
-                {new Date(selectedSystemForDetails.createdAt).toLocaleString()}
-              </span>
-            </div>
-          </div>
-
-          {selectedSystemForDetails.businessPurpose && (
-            <div style={{ marginTop: '12px' }}>
-              <span className="cc-detail-label">BUSINESS PURPOSE:</span>
-              <p style={{ margin: '4px 0 0 0', fontSize: '12px', color: '#CCCCCC' }}>
-                {selectedSystemForDetails.businessPurpose}
-              </p>
-            </div>
-          )}
-
-          {selectedSystemForDetails.description && (
-            <div style={{ marginTop: '8px' }}>
-              <span className="cc-detail-label">TECHNICAL DESCRIPTION:</span>
-              <p style={{ margin: '4px 0 0 0', fontSize: '12px', color: '#999999' }}>
-                {selectedSystemForDetails.description}
-              </p>
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* Main Systems Table */}
+      {/* Main Registry Content */}
       {loading ? (
         <LoadingSpinner label="QUERYING SYSTEMS REGISTRY..." />
-      ) : filteredSystems.length === 0 ? (
-        <EmptyState
-          title="NO MATCHING SYSTEMS FOUND"
-          description="Adjust your search query or filter criteria, or register a new logistics system."
-          action={
-            <button
-              type="button"
-              className="cc-button cc-button-primary"
-              onClick={handleOpenRegister}
-            >
-              + REGISTER NEW SYSTEM
-            </button>
-          }
-        />
+      ) : systems.length === 0 ? (
+        <div className="cc-empty-state">
+          <div className="cc-empty-title">00 // ZERO LOGISTICS NODES REGISTERED</div>
+          <p className="cc-empty-desc">
+            No logistics systems or infrastructure nodes have been provisioned in this tenant yet. Register your primary logistics node (TMS, WMS, ERP, EDI Gateway, Fleet Telematics) to initialize the dependency intelligence graph.
+          </p>
+          <button
+            type="button"
+            className="ed-button ed-button-primary"
+            onClick={handleOpenRegister}
+          >
+            [ + REGISTER INITIAL SYSTEM ]
+          </button>
+        </div>
       ) : (
-        <div className="cc-table-container">
-          <table className="cc-table">
-            <thead>
-              <tr>
-                <th>SYSTEM NAME</th>
-                <th>TYPE</th>
-                <th>CRITICALITY</th>
-                <th>ENVIRONMENT</th>
-                <th>STATUS</th>
-                <th>CREATED</th>
-                <th style={{ textAlign: 'right' }}>OPERATIONAL ACTIONS</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredSystems.map((sys) => (
-                <tr key={sys.id}>
-                  <td>
-                    <button
-                      type="button"
-                      style={{
-                        background: 'transparent',
-                        border: 'none',
-                        color: '#FFFFFF',
-                        fontWeight: 700,
-                        cursor: 'pointer',
-                        padding: 0,
-                        textAlign: 'left',
-                        fontFamily: 'inherit',
-                      }}
-                      onClick={() => setSelectedSystemForDetails(sys)}
-                      title="Inspect technical details"
-                    >
-                      {sys.name} ↗
-                    </button>
-                    {sys.businessPurpose && (
-                      <div style={{ fontSize: '11px', color: '#666666', marginTop: '2px' }}>
-                        {sys.businessPurpose}
-                      </div>
-                    )}
-                  </td>
-                  <td>
-                    <span className="cc-badge cc-badge-neutral">
-                      {systemTypeLabels[sys.systemType]?.split(' ')[0] || 'System'}
-                    </span>
-                  </td>
-                  <td>
-                    <StatusBadge type="systemCriticality" value={sys.criticality} />
-                  </td>
-                  <td>
-                    <span style={{ fontFamily: 'var(--cc-font-mono)', fontSize: '11px', color: '#AAAAAA' }}>
-                      {systemEnvironmentLabels[sys.environment]}
-                    </span>
-                  </td>
-                  <td>
-                    <StatusBadge type="systemStatus" value={sys.lifecycleStatus} />
-                  </td>
-                  <td style={{ fontFamily: 'var(--cc-font-mono)', fontSize: '11px', color: '#888888' }}>
-                    {new Date(sys.createdAt).toLocaleDateString()}
-                  </td>
-                  <td style={{ textAlign: 'right' }}>
-                    <div style={{ display: 'inline-flex', gap: '6px' }}>
-                      <button
-                        type="button"
-                        className="cc-button cc-button-sm"
-                        onClick={() => onNavigate('ImpactAnalysis', sys.id)}
-                        title="Simulate blast radius"
-                      >
-                        IMPACT →
-                      </button>
-                      <button
-                        type="button"
-                        className="cc-button cc-button-sm"
-                        onClick={() => handleOpenEdit(sys)}
-                        title="Modify parameters"
-                      >
-                        EDIT
-                      </button>
-                      {sys.lifecycleStatus === SystemLifecycleStatus.Active && (
+        <>
+          {/* Unobtrusive Minimal Filter Strip */}
+          <div className="ed-filter-strip">
+            <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', alignItems: 'center' }}>
+              <input
+                type="text"
+                className="ed-search-input"
+                placeholder="SEARCH REGISTRY..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+
+              <select
+                className="ed-select"
+                value={typeFilter}
+                onChange={(e) => setTypeFilter(e.target.value)}
+              >
+                <option value="all">ALL SYSTEM TYPES</option>
+                {Object.entries(systemTypeLabels).map(([key, label]) => (
+                  <option key={key} value={key}>
+                    {label}
+                  </option>
+                ))}
+              </select>
+
+              <select
+                className="ed-select"
+                value={critFilter}
+                onChange={(e) => setCritFilter(e.target.value)}
+              >
+                <option value="all">ALL CRITICALITY TIERS</option>
+                {Object.entries(systemCriticalityLabels).map(([key, label]) => (
+                  <option key={key} value={key}>
+                    {label.toUpperCase()}
+                  </option>
+                ))}
+              </select>
+
+              <label
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  fontFamily: 'var(--ed-font-mono)',
+                  fontSize: '11px',
+                  color: 'var(--ed-text-secondary)',
+                  cursor: 'pointer',
+                  userSelect: 'none',
+                }}
+              >
+                <input
+                  type="checkbox"
+                  checked={includeInactive}
+                  onChange={(e) => setIncludeInactive(e.target.checked)}
+                />
+                SHOW INACTIVE
+              </label>
+            </div>
+
+            <div style={{ fontFamily: 'var(--ed-font-mono)', fontSize: '11px', color: 'var(--ed-text-muted)' }}>
+              NODES: <strong style={{ color: 'var(--ed-text-primary)' }}>{String(filteredSystems.length).padStart(3, '0')}</strong> / {String(systems.length).padStart(3, '0')}
+            </div>
+          </div>
+
+          {/* Contextual System Inspection Panel (If selected) */}
+          {selectedSystemForDetails && (
+            <div className="ed-context-panel" style={{ marginBottom: '32px' }}>
+              <div className="ed-context-panel-title">
+                <div>
+                  <span style={{ color: 'var(--ed-amber)', marginRight: '8px' }}>NODE INSPECTION //</span>
+                  <span>{selectedSystemForDetails.name}</span>
+                </div>
+
+                <div style={{ display: 'flex', gap: '8px' }}>
+                  <button
+                    type="button"
+                    className="ed-button ed-button-sm ed-button-primary"
+                    onClick={() => onNavigate('ImpactAnalysis', selectedSystemForDetails.id)}
+                  >
+                    [ BLAST RADIUS → ]
+                  </button>
+                  <button
+                    type="button"
+                    className="ed-button ed-button-sm"
+                    onClick={() => handleOpenEdit(selectedSystemForDetails)}
+                  >
+                    [ EDIT ]
+                  </button>
+                  <button
+                    type="button"
+                    className="ed-button ed-button-sm"
+                    onClick={() => setSelectedSystemForDetails(null)}
+                  >
+                    [ ✕ CLOSE ]
+                  </button>
+                </div>
+              </div>
+
+              <div className="cc-grid-details">
+                <div className="cc-detail-item">
+                  <span className="cc-detail-label">SYSTEM ID:</span>
+                  <span className="cc-detail-value" style={{ fontFamily: 'var(--ed-font-mono)', fontSize: '11px' }}>
+                    {selectedSystemForDetails.id}
+                  </span>
+                </div>
+
+                <div className="cc-detail-item">
+                  <span className="cc-detail-label">TYPE:</span>
+                  <span className="cc-detail-value">
+                    {systemTypeLabels[selectedSystemForDetails.systemType]}
+                  </span>
+                </div>
+
+                <div className="cc-detail-item">
+                  <span className="cc-detail-label">CRITICALITY:</span>
+                  <StatusBadge type="systemCriticality" value={selectedSystemForDetails.criticality} />
+                </div>
+
+                <div className="cc-detail-item">
+                  <span className="cc-detail-label">ENVIRONMENT:</span>
+                  <span className="cc-detail-value" style={{ fontFamily: 'var(--ed-font-mono)' }}>
+                    {systemEnvironmentLabels[selectedSystemForDetails.environment]}
+                  </span>
+                </div>
+
+                <div className="cc-detail-item">
+                  <span className="cc-detail-label">STATUS:</span>
+                  <StatusBadge type="systemStatus" value={selectedSystemForDetails.lifecycleStatus} />
+                </div>
+
+                <div className="cc-detail-item">
+                  <span className="cc-detail-label">REGISTERED:</span>
+                  <span className="cc-detail-value" style={{ fontFamily: 'var(--ed-font-mono)', fontSize: '11px' }}>
+                    {new Date(selectedSystemForDetails.createdAt).toLocaleString()}
+                  </span>
+                </div>
+              </div>
+
+              {selectedSystemForDetails.businessPurpose && (
+                <div style={{ marginTop: '10px' }}>
+                  <span className="cc-detail-label">BUSINESS PURPOSE:</span>
+                  <p style={{ margin: '4px 0 0 0', fontSize: '12px', color: 'var(--ed-text-secondary)', lineHeight: 1.5 }}>
+                    {selectedSystemForDetails.businessPurpose}
+                  </p>
+                </div>
+              )}
+
+              {selectedSystemForDetails.description && (
+                <div style={{ marginTop: '8px' }}>
+                  <span className="cc-detail-label">TECHNICAL SPECIFICATION:</span>
+                  <p style={{ margin: '4px 0 0 0', fontSize: '12px', color: 'var(--ed-text-muted)', lineHeight: 1.5 }}>
+                    {selectedSystemForDetails.description}
+                  </p>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Full-Width Numbered Registry Table */}
+          {filteredSystems.length === 0 ? (
+            <div className="cc-empty-state">
+              <div className="cc-empty-title">00 // NO MATCHING SYSTEMS FOUND</div>
+              <p className="cc-empty-desc">
+                Adjust search keywords or filter criteria to view registered logistics nodes.
+              </p>
+              <button
+                type="button"
+                className="ed-button ed-button-secondary"
+                onClick={() => {
+                  setSearchTerm('')
+                  setTypeFilter('all')
+                  setCritFilter('all')
+                }}
+              >
+                [ RESET FILTERS ]
+              </button>
+            </div>
+          ) : (
+            <div className="ed-table-container">
+              <table className="ed-table">
+                <thead>
+                  <tr>
+                    <th style={{ width: '44px' }}>#</th>
+                    <th>SYSTEM NAME &amp; PURPOSE</th>
+                    <th>CLASSIFICATION</th>
+                    <th>CRITICALITY</th>
+                    <th>ENVIRONMENT</th>
+                    <th>LIFECYCLE</th>
+                    <th>REGISTERED</th>
+                    <th style={{ textAlign: 'right' }}>COMMAND ACTIONS</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredSystems.map((sys, idx) => (
+                    <tr key={sys.id}>
+                      <td className="ed-row-idx">
+                        {String(idx + 1).padStart(3, '0')}
+                      </td>
+                      <td>
                         <button
                           type="button"
-                          className="cc-button cc-button-sm cc-button-danger"
-                          onClick={() => setDeactivatingId(sys.id)}
-                          title="Soft deactivate system"
+                          style={{
+                            background: 'transparent',
+                            border: 'none',
+                            color: 'var(--ed-text-primary)',
+                            fontWeight: 700,
+                            cursor: 'pointer',
+                            padding: 0,
+                            textAlign: 'left',
+                            fontFamily: 'inherit',
+                            fontSize: '13px',
+                          }}
+                          onClick={() => setSelectedSystemForDetails(sys)}
+                          title="Inspect node telemetry"
                         >
-                          DEACTIVATE
+                          {sys.name} <span style={{ opacity: 0.4 }}>↗</span>
                         </button>
-                      )}
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+                        {sys.businessPurpose && (
+                          <div style={{ fontSize: '11px', color: 'var(--ed-text-muted)', marginTop: '2px' }}>
+                            {sys.businessPurpose}
+                          </div>
+                        )}
+                      </td>
+                      <td>
+                        <span className="cc-badge cc-badge-neutral">
+                          {systemTypeLabels[sys.systemType]?.split(' ')[0] || 'System'}
+                        </span>
+                      </td>
+                      <td>
+                        <StatusBadge type="systemCriticality" value={sys.criticality} />
+                      </td>
+                      <td>
+                        <span style={{ fontFamily: 'var(--ed-font-mono)', fontSize: '11px', color: 'var(--ed-text-secondary)' }}>
+                          {systemEnvironmentLabels[sys.environment]}
+                        </span>
+                      </td>
+                      <td>
+                        <StatusBadge type="systemStatus" value={sys.lifecycleStatus} />
+                      </td>
+                      <td style={{ fontFamily: 'var(--ed-font-mono)', fontSize: '11px', color: 'var(--ed-text-muted)' }}>
+                        {new Date(sys.createdAt).toLocaleDateString()}
+                      </td>
+                      <td style={{ textAlign: 'right' }}>
+                        <div style={{ display: 'inline-flex', gap: '6px' }}>
+                          <button
+                            type="button"
+                            className="ed-button ed-button-sm ed-button-secondary"
+                            onClick={() => onNavigate('ImpactAnalysis', sys.id)}
+                            title="Simulate blast radius"
+                          >
+                            [ BLAST RADIUS → ]
+                          </button>
+                          <button
+                            type="button"
+                            className="ed-button ed-button-sm"
+                            onClick={() => handleOpenEdit(sys)}
+                            title="Edit metadata"
+                          >
+                            [ EDIT ]
+                          </button>
+                          {sys.lifecycleStatus === SystemLifecycleStatus.Active && (
+                            <button
+                              type="button"
+                              className="ed-button ed-button-sm ed-button-danger"
+                              onClick={() => setDeactivatingId(sys.id)}
+                              title="Soft deactivate node"
+                            >
+                              [ DEACTIVATE ]
+                            </button>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </>
       )}
 
       {/* Register System Modal */}
@@ -504,18 +532,18 @@ export default function SystemsPage({ onNavigate }: SystemsPageProps) {
           <>
             <button
               type="button"
-              className="cc-button"
+              className="ed-button"
               onClick={() => setIsRegisterOpen(false)}
             >
-              CANCEL
+              [ CANCEL ]
             </button>
             <button
               type="button"
-              className="cc-button cc-button-primary"
+              className="ed-button ed-button-primary"
               disabled={submitting}
               onClick={handleRegisterSubmit}
             >
-              {submitting ? 'COMMITTING...' : 'REGISTER SYSTEM'}
+              {submitting ? 'COMMITTING...' : '[ REGISTER SYSTEM ]'}
             </button>
           </>
         }
@@ -527,86 +555,35 @@ export default function SystemsPage({ onNavigate }: SystemsPageProps) {
             <label className="cc-form-label">SYSTEM NAME *</label>
             <input
               type="text"
-              className="cc-input"
-              required
-              maxLength={100}
-              placeholder="e.g. Warehouse Execution Core (WMS-01)"
+              className="ed-input"
+              placeholder="e.g., SAP-TMS-CORE"
               value={formData.name}
               onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+              required
             />
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-            <div className="cc-form-group">
-              <label className="cc-form-label">SYSTEM TYPE *</label>
-              <select
-                className="cc-select"
-                value={formData.systemType}
-                onChange={(e) => setFormData({ ...formData, systemType: Number(e.target.value) as SystemType })}
-              >
-                {Object.entries(systemTypeLabels).map(([key, label]) => (
-                  <option key={key} value={key}>
-                    {label}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div className="cc-form-group">
-              <label className="cc-form-label">CRITICALITY TIER *</label>
-              <select
-                className="cc-select"
-                value={formData.criticality}
-                onChange={(e) => setFormData({ ...formData, criticality: Number(e.target.value) as SystemCriticality })}
-              >
-                {Object.entries(systemCriticalityLabels).map(([key, label]) => (
-                  <option key={key} value={key}>
-                    {label}
-                  </option>
-                ))}
-              </select>
-            </div>
-          </div>
-
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-            <div className="cc-form-group">
-              <label className="cc-form-label">ENVIRONMENT *</label>
-              <select
-                className="cc-select"
-                value={formData.environment}
-                onChange={(e) => setFormData({ ...formData, environment: Number(e.target.value) as SystemEnvironment })}
-              >
-                {Object.entries(systemEnvironmentLabels).map(([key, label]) => (
-                  <option key={key} value={key}>
-                    {label}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div className="cc-form-group">
-              <label className="cc-form-label">INITIAL LIFECYCLE STATUS *</label>
-              <select
-                className="cc-select"
-                value={formData.lifecycleStatus}
-                onChange={(e) => setFormData({ ...formData, lifecycleStatus: Number(e.target.value) as SystemLifecycleStatus })}
-              >
-                {Object.entries(systemLifecycleStatusLabels).map(([key, label]) => (
-                  <option key={key} value={key}>
-                    {label}
-                  </option>
-                ))}
-              </select>
-            </div>
+          <div className="cc-form-group">
+            <label className="cc-form-label">SYSTEM TYPE *</label>
+            <select
+              className="ed-select"
+              value={formData.systemType}
+              onChange={(e) => setFormData({ ...formData, systemType: Number(e.target.value) as SystemType })}
+            >
+              {Object.entries(systemTypeLabels).map(([key, label]) => (
+                <option key={key} value={key}>
+                  {label}
+                </option>
+              ))}
+            </select>
           </div>
 
           <div className="cc-form-group">
             <label className="cc-form-label">BUSINESS PURPOSE</label>
             <input
               type="text"
-              className="cc-input"
-              maxLength={500}
-              placeholder="e.g. Orchestrates package intake, sortation routing and conveyor handoff."
+              className="ed-input"
+              placeholder="Operational role in supply chain"
               value={formData.businessPurpose || ''}
               onChange={(e) => setFormData({ ...formData, businessPurpose: e.target.value })}
             />
@@ -615,38 +592,69 @@ export default function SystemsPage({ onNavigate }: SystemsPageProps) {
           <div className="cc-form-group">
             <label className="cc-form-label">TECHNICAL DESCRIPTION</label>
             <textarea
-              className="cc-textarea"
+              className="ed-textarea"
               rows={3}
-              maxLength={500}
-              placeholder="Technical specs, interface protocols, deployment host..."
+              placeholder="Architecture, protocols, or hosting details"
               value={formData.description || ''}
               onChange={(e) => setFormData({ ...formData, description: e.target.value })}
             />
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+            <div className="cc-form-group">
+              <label className="cc-form-label">CRITICALITY TIER *</label>
+              <select
+                className="ed-select"
+                value={formData.criticality}
+                onChange={(e) => setFormData({ ...formData, criticality: Number(e.target.value) as SystemCriticality })}
+              >
+                {Object.entries(systemCriticalityLabels).map(([key, label]) => (
+                  <option key={key} value={key}>
+                    {label.toUpperCase()}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div className="cc-form-group">
+              <label className="cc-form-label">ENVIRONMENT *</label>
+              <select
+                className="ed-select"
+                value={formData.environment}
+                onChange={(e) => setFormData({ ...formData, environment: Number(e.target.value) as SystemEnvironment })}
+              >
+                {Object.entries(systemEnvironmentLabels).map(([key, label]) => (
+                  <option key={key} value={key}>
+                    {label.toUpperCase()}
+                  </option>
+                ))}
+              </select>
+            </div>
           </div>
         </form>
       </Modal>
 
       {/* Edit System Modal */}
       <Modal
-        isOpen={editingSystem !== null}
-        title={`EDIT SYSTEM // ${editingSystem?.name || ''}`}
+        isOpen={Boolean(editingSystem)}
+        title={`EDIT SYSTEM: ${editingSystem?.name || ''}`}
         onClose={() => setEditingSystem(null)}
         footer={
           <>
             <button
               type="button"
-              className="cc-button"
+              className="ed-button"
               onClick={() => setEditingSystem(null)}
             >
-              CANCEL
+              [ CANCEL ]
             </button>
             <button
               type="button"
-              className="cc-button cc-button-primary"
+              className="ed-button ed-button-primary"
               disabled={submitting}
               onClick={handleUpdateSubmit}
             >
-              {submitting ? 'SAVING...' : 'COMMIT CHANGES'}
+              {submitting ? 'SAVING...' : '[ SAVE CHANGES ]'}
             </button>
           </>
         }
@@ -658,84 +666,33 @@ export default function SystemsPage({ onNavigate }: SystemsPageProps) {
             <label className="cc-form-label">SYSTEM NAME *</label>
             <input
               type="text"
-              className="cc-input"
-              required
-              maxLength={100}
+              className="ed-input"
               value={formData.name}
               onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+              required
             />
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-            <div className="cc-form-group">
-              <label className="cc-form-label">SYSTEM TYPE *</label>
-              <select
-                className="cc-select"
-                value={formData.systemType}
-                onChange={(e) => setFormData({ ...formData, systemType: Number(e.target.value) as SystemType })}
-              >
-                {Object.entries(systemTypeLabels).map(([key, label]) => (
-                  <option key={key} value={key}>
-                    {label}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div className="cc-form-group">
-              <label className="cc-form-label">CRITICALITY TIER *</label>
-              <select
-                className="cc-select"
-                value={formData.criticality}
-                onChange={(e) => setFormData({ ...formData, criticality: Number(e.target.value) as SystemCriticality })}
-              >
-                {Object.entries(systemCriticalityLabels).map(([key, label]) => (
-                  <option key={key} value={key}>
-                    {label}
-                  </option>
-                ))}
-              </select>
-            </div>
-          </div>
-
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-            <div className="cc-form-group">
-              <label className="cc-form-label">ENVIRONMENT *</label>
-              <select
-                className="cc-select"
-                value={formData.environment}
-                onChange={(e) => setFormData({ ...formData, environment: Number(e.target.value) as SystemEnvironment })}
-              >
-                {Object.entries(systemEnvironmentLabels).map(([key, label]) => (
-                  <option key={key} value={key}>
-                    {label}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div className="cc-form-group">
-              <label className="cc-form-label">LIFECYCLE STATUS *</label>
-              <select
-                className="cc-select"
-                value={formData.lifecycleStatus}
-                onChange={(e) => setFormData({ ...formData, lifecycleStatus: Number(e.target.value) as SystemLifecycleStatus })}
-              >
-                {Object.entries(systemLifecycleStatusLabels).map(([key, label]) => (
-                  <option key={key} value={key}>
-                    {label}
-                  </option>
-                ))}
-              </select>
-            </div>
+          <div className="cc-form-group">
+            <label className="cc-form-label">SYSTEM TYPE *</label>
+            <select
+              className="ed-select"
+              value={formData.systemType}
+              onChange={(e) => setFormData({ ...formData, systemType: Number(e.target.value) as SystemType })}
+            >
+              {Object.entries(systemTypeLabels).map(([key, label]) => (
+                <option key={key} value={key}>
+                  {label}
+                </option>
+              ))}
+            </select>
           </div>
 
           <div className="cc-form-group">
             <label className="cc-form-label">BUSINESS PURPOSE</label>
             <input
               type="text"
-              className="cc-input"
-              maxLength={500}
+              className="ed-input"
               value={formData.businessPurpose || ''}
               onChange={(e) => setFormData({ ...formData, businessPurpose: e.target.value })}
             />
@@ -744,45 +701,74 @@ export default function SystemsPage({ onNavigate }: SystemsPageProps) {
           <div className="cc-form-group">
             <label className="cc-form-label">TECHNICAL DESCRIPTION</label>
             <textarea
-              className="cc-textarea"
+              className="ed-textarea"
               rows={3}
-              maxLength={500}
               value={formData.description || ''}
               onChange={(e) => setFormData({ ...formData, description: e.target.value })}
             />
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+            <div className="cc-form-group">
+              <label className="cc-form-label">CRITICALITY TIER *</label>
+              <select
+                className="ed-select"
+                value={formData.criticality}
+                onChange={(e) => setFormData({ ...formData, criticality: Number(e.target.value) as SystemCriticality })}
+              >
+                {Object.entries(systemCriticalityLabels).map(([key, label]) => (
+                  <option key={key} value={key}>
+                    {label.toUpperCase()}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div className="cc-form-group">
+              <label className="cc-form-label">ENVIRONMENT *</label>
+              <select
+                className="ed-select"
+                value={formData.environment}
+                onChange={(e) => setFormData({ ...formData, environment: Number(e.target.value) as SystemEnvironment })}
+              >
+                {Object.entries(systemEnvironmentLabels).map(([key, label]) => (
+                  <option key={key} value={key}>
+                    {label.toUpperCase()}
+                  </option>
+                ))}
+              </select>
+            </div>
           </div>
         </form>
       </Modal>
 
       {/* Deactivate Confirmation Modal */}
       <Modal
-        isOpen={deactivatingId !== null}
-        title="CONFIRM DEACTIVATION"
+        isOpen={Boolean(deactivatingId)}
+        title="CONFIRM SYSTEM DEACTIVATION"
         onClose={() => setDeactivatingId(null)}
         footer={
           <>
             <button
               type="button"
-              className="cc-button"
+              className="ed-button"
               onClick={() => setDeactivatingId(null)}
             >
-              CANCEL
+              [ CANCEL ]
             </button>
             <button
               type="button"
-              className="cc-button cc-button-danger"
+              className="ed-button ed-button-danger"
               disabled={submitting}
               onClick={handleDeactivateConfirm}
             >
-              {submitting ? 'DEACTIVATING...' : 'DEACTIVATE SYSTEM'}
+              {submitting ? 'DEACTIVATING...' : '[ CONFIRM DEACTIVATION ]'}
             </button>
           </>
         }
       >
-        <p style={{ margin: 0, fontSize: '13px', lineHeight: 1.5 }}>
-          Are you sure you want to deactivate this system?
-          <br /><br />
-          <strong style={{ color: 'var(--cc-text-primary)' }}>Notice:</strong> The record will be soft-deactivated to preserve historical dependency chains, incident associations, and audit telemetry.
+        <p style={{ margin: 0, fontSize: '13px', color: 'var(--ed-text-secondary)', lineHeight: 1.6 }}>
+          Are you sure you want to deactivate this logistics system? The record will be preserved for audit continuity, but will be excluded from default graph traversals and active impact evaluations.
         </p>
       </Modal>
     </div>

@@ -6,10 +6,16 @@ import type {
   LogisticsSystemResponseDTO,
   CreateSystemDependencyDTO,
 } from '../types'
-import { DependencyType, SystemLifecycleStatus, dependencyTypeLabels } from '../types'
+import {
+  DependencyType,
+  SystemLifecycleStatus,
+  dependencyTypeLabels,
+  systemEnvironmentLabels,
+  systemTypeLabels,
+} from '../types'
 import StatusBadge from '../components/StatusBadge'
 import Modal from '../components/Modal'
-import { LoadingSpinner, ErrorBanner, EmptyState } from '../components/CommonStates'
+import { LoadingSpinner, ErrorBanner } from '../components/CommonStates'
 
 interface DependenciesPageProps {
   onNavigate: (page: Page, systemId?: string) => void
@@ -22,10 +28,12 @@ export default function DependenciesPage({ onNavigate }: DependenciesPageProps) 
   const [error, setError] = useState<string | null>(null)
   const [actionSuccess, setActionSuccess] = useState<string | null>(null)
 
-  // Filters & View Mode
+  // Filters & Selected State
   const [searchTerm, setSearchTerm] = useState('')
   const [typeFilter, setTypeFilter] = useState<string>('all')
-  const [viewMode, setViewMode] = useState<'table' | 'visual'>('table')
+  const [viewMode, setViewMode] = useState<'graph' | 'table'>('graph')
+  const [selectedDepId, setSelectedDepId] = useState<string | null>(null)
+  const [selectedSystemId, setSelectedSystemId] = useState<string | null>(null)
 
   // Modals
   const [isAddOpen, setIsAddOpen] = useState(false)
@@ -51,10 +59,13 @@ export default function DependenciesPage({ onNavigate }: DependenciesPageProps) 
     try {
       const [depsData, sysData] = await Promise.all([
         api.getDependencies(),
-        api.getSystems(false), // only active systems for dependency creation
+        api.getSystems(false),
       ])
       setDependencies(depsData)
       setSystems(sysData)
+      if (depsData.length > 0 && !selectedDepId) {
+        setSelectedDepId(depsData[0].id)
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to retrieve dependency relationships.')
     } finally {
@@ -143,6 +154,9 @@ export default function DependenciesPage({ onNavigate }: DependenciesPageProps) 
     setSubmitting(true)
     try {
       await api.deleteDependency(deletingId)
+      if (selectedDepId === deletingId) {
+        setSelectedDepId(null)
+      }
       setDeletingId(null)
       setActionSuccess('Dependency relationship removed.')
       await loadData()
@@ -165,79 +179,122 @@ export default function DependenciesPage({ onNavigate }: DependenciesPageProps) 
     })
   }, [dependencies, searchTerm, typeFilter])
 
+  const selectedDep = useMemo(() => {
+    return dependencies.find((d) => d.id === selectedDepId) || dependencies[0] || null
+  }, [dependencies, selectedDepId])
+
+  const selectedSystem = useMemo(() => {
+    return systems.find((s) => s.id === selectedSystemId) || null
+  }, [systems, selectedSystemId])
+
+  // Compute node coordinates for topological graph visualization
+  const graphNodes = useMemo(() => {
+    const list = activeSystems
+    const count = list.length
+    if (count === 0) return []
+    const width = 680
+    const height = 400
+    const padding = 60
+
+    return list.map((sys, idx) => {
+      // 2 columns or circular / tiered distribution
+      const isLeft = idx % 2 === 0
+      const row = Math.floor(idx / 2)
+      const totalRows = Math.ceil(count / 2) || 1
+      const x = isLeft ? padding + 60 : width - padding - 60
+      const y = padding + (row / Math.max(1, totalRows - 1)) * (height - 2 * padding)
+      return {
+        id: sys.id,
+        name: sys.name,
+        system: sys,
+        x: count === 1 ? width / 2 : x,
+        y: count === 1 ? height / 2 : y,
+      }
+    })
+  }, [activeSystems])
+
+  const nodeMap = useMemo(() => {
+    const map = new Map<string, { id: string; name: string; x: number; y: number }>()
+    graphNodes.forEach((n) => map.set(n.id, n))
+    return map
+  }, [graphNodes])
+
   return (
     <div>
-      <div className="cc-page-header">
-        <div className="cc-page-title-group">
-          <h1>03 // DEPENDENCY RELATIONSHIP GRAPH</h1>
-          <p>
-            Upstream provider to downstream reliant system dependencies. Ingested into the Graph Engine for blast radius calculation.
+      {/* Editorial Page Header */}
+      <div className="ed-page-header">
+        <div>
+          <div className="ed-section-tag">
+            <span>MODULE 03</span>
+            <span style={{ opacity: 0.3 }}>/</span>
+            <span>RELATIONSHIP TOPOLOGY &amp; GRAPH ENGINE</span>
+          </div>
+          <h1 className="ed-page-title">Dependency Relationship Graph</h1>
+          <p className="ed-page-subtitle">
+            Directed graph topology linking upstream provider components to reliant logistics services. Primary data source for blast radius traversal.
           </p>
         </div>
 
-        <div style={{ display: 'flex', gap: '8px' }}>
-          <div style={{ display: 'inline-flex', border: '1px solid var(--cc-border)' }}>
+        <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+          <div style={{ display: 'inline-flex', border: '1px solid var(--ed-border)' }}>
             <button
               type="button"
-              className={`cc-button cc-button-sm ${viewMode === 'table' ? 'cc-button-primary' : ''}`}
+              className={`ed-button ed-button-sm ${viewMode === 'graph' ? 'ed-button-primary' : ''}`}
               style={{ border: 'none' }}
-              onClick={() => setViewMode('table')}
+              onClick={() => setViewMode('graph')}
             >
-              TABLE VIEW
+              [ HERO GRAPH ]
             </button>
             <button
               type="button"
-              className={`cc-button cc-button-sm ${viewMode === 'visual' ? 'cc-button-primary' : ''}`}
+              className={`ed-button ed-button-sm ${viewMode === 'table' ? 'ed-button-primary' : ''}`}
               style={{ border: 'none' }}
-              onClick={() => setViewMode('visual')}
+              onClick={() => setViewMode('table')}
             >
-              RELATIONSHIP FLOW
+              [ TABULAR VIEW ]
             </button>
           </div>
 
           <button
             type="button"
-            className="cc-button cc-button-primary"
+            className="ed-button ed-button-primary"
             onClick={handleOpenAdd}
             disabled={activeSystems.length < 2}
             title={activeSystems.length < 2 ? 'At least 2 active systems required' : undefined}
           >
-            + MAP DEPENDENCY
+            [ + MAP DEPENDENCY ]
           </button>
         </div>
       </div>
 
       {actionSuccess && (
         <div
-          className="cc-badge cc-badge-green"
-          style={{ width: '100%', padding: '10px 14px', marginBottom: '16px', boxSizing: 'border-box' }}
+          className="ed-badge ed-badge-teal"
+          style={{ width: '100%', padding: '10px 16px', marginBottom: '20px', boxSizing: 'border-box' }}
         >
-          ✓ {actionSuccess}
+          [SUCCESS] {actionSuccess}
         </div>
       )}
 
       {error && <ErrorBanner message={error} onDismiss={() => setError(null)} />}
 
-      {/* Filter toolbar */}
-      <div className="cc-toolbar">
-        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center' }}>
-          <div className="cc-search-box">
-            <span style={{ color: '#555555', fontFamily: 'var(--cc-font-mono)' }}>⌕</span>
-            <input
-              type="text"
-              placeholder="SEARCH DEPENDENCIES..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
-          </div>
+      {/* Unobtrusive Minimal Filter Strip */}
+      <div className="ed-filter-strip">
+        <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', alignItems: 'center' }}>
+          <input
+            type="text"
+            className="ed-search-input"
+            placeholder="SEARCH DEPENDENCIES..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
 
           <select
-            className="cc-select"
-            style={{ width: 'auto' }}
+            className="ed-select"
             value={typeFilter}
             onChange={(e) => setTypeFilter(e.target.value)}
           >
-            <option value="all">ALL DEPENDENCY TYPES</option>
+            <option value="all">ALL CLASSIFICATIONS</option>
             {Object.entries(dependencyTypeLabels).map(([key, label]) => (
               <option key={key} value={key}>
                 {label.toUpperCase()}
@@ -246,104 +303,370 @@ export default function DependenciesPage({ onNavigate }: DependenciesPageProps) 
           </select>
         </div>
 
-        <div style={{ fontFamily: 'var(--cc-font-mono)', fontSize: '11px', color: '#888888' }}>
-          REGISTERED EDGES: <strong>{filteredDependencies.length}</strong> / {dependencies.length}
+        <div style={{ fontFamily: 'var(--ed-font-mono)', fontSize: '11px', color: 'var(--ed-text-muted)' }}>
+          EDGES: <strong style={{ color: 'var(--ed-text-primary)' }}>{String(filteredDependencies.length).padStart(3, '0')}</strong> / {String(dependencies.length).padStart(3, '0')}
         </div>
       </div>
 
       {loading ? (
         <LoadingSpinner label="COMPUTING DEPENDENCY EDGES..." />
-      ) : filteredDependencies.length === 0 ? (
-        <EmptyState
-          title="NO DEPENDENCY EDGES RECORDED"
-          description={
-            activeSystems.length < 2
-              ? 'At least two active logistics systems must be registered before dependency edges can be defined.'
-              : 'Define dependency linkages to enable Graph Engine traversal and downstream impact simulation.'
-          }
-          action={
-            activeSystems.length >= 2 ? (
-              <button
-                type="button"
-                className="cc-button cc-button-primary"
-                onClick={handleOpenAdd}
+      ) : filteredDependencies.length === 0 && dependencies.length === 0 ? (
+        <div className="cc-empty-state">
+          <div className="cc-empty-title">00 // ZERO DEPENDENCY EDGES MAPPED</div>
+          <p className="cc-empty-desc">
+            {activeSystems.length < 2
+              ? 'At least two active logistics systems must be registered before dependency linkages can be established.'
+              : 'Define architectural dependency linkages between systems to enable Graph Engine traversal and blast radius cascade scoring.'}
+          </p>
+          {activeSystems.length >= 2 && (
+            <button
+              type="button"
+              className="ed-button ed-button-primary"
+              onClick={handleOpenAdd}
+            >
+              [ + MAP FIRST DEPENDENCY ]
+            </button>
+          )}
+        </div>
+      ) : viewMode === 'graph' ? (
+        /* HERO DEPENDENCY GRAPH + CONTEXTUAL SIDE PANEL (ASYMMETRIC 68 / 32 SPLIT) */
+        <div className="ed-asym-65-35">
+          {/* Left Column: Primary Visual Hero Graph */}
+          <div>
+            <div
+              style={{
+                backgroundColor: 'var(--ed-bg-surface)',
+                border: '1px solid var(--ed-border)',
+                position: 'relative',
+                overflow: 'hidden',
+                minHeight: '440px',
+                display: 'flex',
+                flexDirection: 'column',
+              }}
+            >
+              {/* Graph Header Monospace Strip */}
+              <div
+                style={{
+                  padding: '12px 18px',
+                  borderBottom: '1px solid var(--ed-border)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  fontFamily: 'var(--ed-font-mono)',
+                  fontSize: '10px',
+                  color: 'var(--ed-text-muted)',
+                  letterSpacing: '0.1em',
+                }}
               >
-                + MAP FIRST DEPENDENCY
-              </button>
-            ) : undefined
-          }
-        />
-      ) : viewMode === 'table' ? (
-        /* TABLE VIEW */
-        <div className="cc-table-container">
-          <table className="cc-table">
+                <span>TOPOLOGICAL GRAPH VIEW // DIRECTED EDGES</span>
+                <div style={{ display: 'flex', gap: '14px' }}>
+                  <span style={{ color: 'var(--ed-amber-text)' }}>● MANDATORY (STRICT)</span>
+                  <span style={{ color: 'var(--ed-teal-text)' }}>● OPTIONAL (FAILOVER)</span>
+                </div>
+              </div>
+
+              {/* Interactive SVG Canvas */}
+              <div style={{ flex: 1, position: 'relative', minHeight: '380px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <svg
+                  width="100%"
+                  height="400"
+                  viewBox="0 0 680 400"
+                  style={{ background: 'radial-gradient(circle, rgba(237,231,220,0.02) 1px, transparent 1px)', backgroundSize: '24px 24px' }}
+                >
+                  <defs>
+                    <marker
+                      id="arrow-mandatory"
+                      viewBox="0 0 10 10"
+                      refX="18"
+                      refY="5"
+                      markerWidth="6"
+                      markerHeight="6"
+                      orient="auto-start-reverse"
+                    >
+                      <path d="M 0 0 L 10 5 L 0 10 z" fill="#E8913C" />
+                    </marker>
+                    <marker
+                      id="arrow-optional"
+                      viewBox="0 0 10 10"
+                      refX="18"
+                      refY="5"
+                      markerWidth="6"
+                      markerHeight="6"
+                      orient="auto-start-reverse"
+                    >
+                      <path d="M 0 0 L 10 5 L 0 10 z" fill="#2E6B72" />
+                    </marker>
+                  </defs>
+
+                  {/* Draw Directed Edges */}
+                  {filteredDependencies.map((dep) => {
+                    const src = nodeMap.get(dep.dependencySystemId)
+                    const dst = nodeMap.get(dep.dependentSystemId)
+                    if (!src || !dst) return null
+                    const isSelected = selectedDepId === dep.id
+                    const isMandatory = dep.dependencyType === DependencyType.Mandatory
+                    const strokeColor = isSelected ? '#FFFFFF' : isMandatory ? '#E8913C' : '#2E6B72'
+                    const strokeWidth = isSelected ? 2.5 : 1.5
+
+                    // Calculate curve control point
+                    const midX = (src.x + dst.x) / 2
+                    const midY = (src.y + dst.y) / 2 - 20
+
+                    return (
+                      <g key={dep.id} style={{ cursor: 'pointer' }} onClick={() => { setSelectedDepId(dep.id); setSelectedSystemId(null) }}>
+                        <path
+                          d={`M ${src.x} ${src.y} Q ${midX} ${midY} ${dst.x} ${dst.y}`}
+                          fill="none"
+                          stroke={strokeColor}
+                          strokeWidth={strokeWidth}
+                          strokeDasharray={isMandatory ? 'none' : '4 3'}
+                          markerEnd={isMandatory ? 'url(#arrow-mandatory)' : 'url(#arrow-optional)'}
+                          opacity={isSelected ? 1 : 0.75}
+                        />
+                      </g>
+                    )
+                  })}
+
+                  {/* Draw Nodes */}
+                  {graphNodes.map((n) => {
+                    const isSelected = selectedSystemId === n.id
+                    return (
+                      <g
+                        key={n.id}
+                        style={{ cursor: 'pointer' }}
+                        onClick={() => {
+                          setSelectedSystemId(n.id)
+                          setSelectedDepId(null)
+                        }}
+                      >
+                        <circle
+                          cx={n.x}
+                          cy={n.y}
+                          r={isSelected ? 10 : 7}
+                          fill={isSelected ? 'var(--ed-amber)' : 'var(--ed-bg-elevated)'}
+                          stroke={isSelected ? '#FFFFFF' : 'var(--ed-border-strong)'}
+                          strokeWidth={isSelected ? 2 : 1}
+                        />
+                        <text
+                          x={n.x}
+                          y={n.y - 14}
+                          textAnchor="middle"
+                          fill={isSelected ? 'var(--ed-amber)' : 'var(--ed-text-primary)'}
+                          fontSize="10"
+                          fontFamily="var(--ed-font-mono)"
+                          fontWeight="700"
+                        >
+                          {n.name}
+                        </text>
+                      </g>
+                    )
+                  })}
+                </svg>
+              </div>
+
+              {/* Graph Footer Caption */}
+              <div
+                style={{
+                  padding: '10px 18px',
+                  borderTop: '1px solid var(--ed-border)',
+                  fontFamily: 'var(--ed-font-mono)',
+                  fontSize: '10px',
+                  color: 'var(--ed-text-muted)',
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                }}
+              >
+                <span>TIP: CLICK ANY EDGE OR NODE TO INSPECT DETAILS</span>
+                <span>NODES: {graphNodes.length} / EDGES: {filteredDependencies.length}</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Right Column: Contextual Side Panel */}
+          <div className="ed-context-panel">
+            {selectedDep ? (
+              <>
+                <div className="ed-context-panel-title">
+                  <span>EDGE INSPECTION //</span>
+                  <StatusBadge type="dependencyType" value={selectedDep.dependencyType} />
+                </div>
+
+                <div style={{ fontFamily: 'var(--ed-font-mono)', fontSize: '11px', lineHeight: 1.8 }}>
+                  <div>
+                    <span style={{ color: 'var(--ed-text-muted)' }}>EDGE ID: </span>
+                    <strong style={{ color: 'var(--ed-text-primary)' }}>#{selectedDep.id.substring(0, 8)}</strong>
+                  </div>
+
+                  <div style={{ margin: '12px 0', padding: '12px', background: 'var(--ed-bg-elevated)', border: '1px solid var(--ed-border)' }}>
+                    <div style={{ fontSize: '10px', color: 'var(--ed-text-muted)', marginBottom: '4px' }}>UPSTREAM PROVIDER (SOURCE)</div>
+                    <div style={{ fontSize: '14px', fontWeight: 800, color: 'var(--ed-amber)' }}>
+                      {selectedDep.dependencySystem?.name || selectedDep.dependencySystemId}
+                    </div>
+                    <div style={{ margin: '8px 0', textAlign: 'center', color: 'var(--ed-text-muted)', fontSize: '12px' }}>
+                      ───[ DIRECTED CASUAL VECTOR ]───▶
+                    </div>
+                    <div style={{ fontSize: '10px', color: 'var(--ed-text-muted)', marginBottom: '4px' }}>DOWNSTREAM RELIANT (DESTINATION)</div>
+                    <div style={{ fontSize: '14px', fontWeight: 800, color: 'var(--ed-text-primary)' }}>
+                      {selectedDep.dependentSystem?.name || selectedDep.dependentSystemId}
+                    </div>
+                  </div>
+
+                  <div>
+                    <span style={{ color: 'var(--ed-text-muted)' }}>ARCHITECTURAL RULE: </span>
+                    <strong>
+                      {selectedDep.dependencyType === DependencyType.Mandatory
+                        ? 'Strict Prerequisite (Outage cascades immediately)'
+                        : 'Optional Redundancy (Failover tolerated)'}
+                    </strong>
+                  </div>
+
+                  <div>
+                    <span style={{ color: 'var(--ed-text-muted)' }}>ESTABLISHED: </span>
+                    <span>{new Date(selectedDep.createdAt).toLocaleDateString()}</span>
+                  </div>
+                </div>
+
+                <div className="ed-rule-subtle" style={{ margin: '14px 0' }} />
+
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                  <button
+                    type="button"
+                    className="ed-button ed-button-primary"
+                    onClick={() => onNavigate('ImpactAnalysis', selectedDep.dependencySystemId)}
+                    style={{ width: '100%' }}
+                  >
+                    [ SIMULATE PROVIDER OUTAGE → ]
+                  </button>
+
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+                    <button
+                      type="button"
+                      className="ed-button"
+                      onClick={() => handleOpenEdit(selectedDep)}
+                    >
+                      [ EDIT EDGE ]
+                    </button>
+                    <button
+                      type="button"
+                      className="ed-button ed-button-danger"
+                      onClick={() => setDeletingId(selectedDep.id)}
+                    >
+                      [ DELETE ]
+                    </button>
+                  </div>
+                </div>
+              </>
+            ) : selectedSystem ? (
+              <>
+                <div className="ed-context-panel-title">
+                  <span>NODE INSPECTION //</span>
+                  <StatusBadge type="systemCriticality" value={selectedSystem.criticality} />
+                </div>
+
+                <div style={{ fontFamily: 'var(--ed-font-mono)', fontSize: '11px', lineHeight: 1.8 }}>
+                  <div>
+                    <span style={{ color: 'var(--ed-text-muted)' }}>SYSTEM: </span>
+                    <strong style={{ fontSize: '15px', color: 'var(--ed-text-primary)' }}>{selectedSystem.name}</strong>
+                  </div>
+                  <div>
+                    <span style={{ color: 'var(--ed-text-muted)' }}>ENVIRONMENT: </span>
+                    <span>{systemEnvironmentLabels[selectedSystem.environment]}</span>
+                  </div>
+                  <div>
+                    <span style={{ color: 'var(--ed-text-muted)' }}>STATUS: </span>
+                    <StatusBadge type="systemStatus" value={selectedSystem.lifecycleStatus} />
+                  </div>
+                </div>
+
+                <div className="ed-rule-subtle" style={{ margin: '14px 0' }} />
+
+                <button
+                  type="button"
+                  className="ed-button ed-button-primary"
+                  onClick={() => onNavigate('ImpactAnalysis', selectedSystem.id)}
+                  style={{ width: '100%' }}
+                >
+                  [ SIMULATE BLAST RADIUS → ]
+                </button>
+              </>
+            ) : (
+              <div style={{ color: 'var(--ed-text-muted)', textAlign: 'center', padding: '36px 0' }}>
+                Select a dependency edge or node in the graph to inspect architectural relationships.
+              </div>
+            )}
+          </div>
+        </div>
+      ) : (
+        /* TABULAR BULK DIRECTORY VIEW */
+        <div className="ed-table-container">
+          <table className="ed-table">
             <thead>
               <tr>
-                <th>DEPENDENT SYSTEM (RELIANT)</th>
-                <th style={{ textAlign: 'center' }}>RELATIONSHIP</th>
-                <th>PROVIDER SYSTEM (DEPENDENCY)</th>
+                <th style={{ width: '44px' }}>#</th>
+                <th>DOWNSTREAM RELIANT (DESTINATION)</th>
+                <th style={{ textAlign: 'center' }}>VECTOR</th>
+                <th>UPSTREAM PROVIDER (SOURCE)</th>
                 <th>CLASSIFICATION</th>
                 <th>ESTABLISHED</th>
-                <th style={{ textAlign: 'right' }}>ACTIONS</th>
+                <th style={{ textAlign: 'right' }}>COMMAND ACTIONS</th>
               </tr>
             </thead>
             <tbody>
-              {filteredDependencies.map((dep) => (
+              {filteredDependencies.map((dep, idx) => (
                 <tr key={dep.id}>
+                  <td className="ed-row-idx">{String(idx + 1).padStart(3, '0')}</td>
                   <td>
                     <div style={{ fontWeight: 700 }}>
                       {dep.dependentSystem?.name || dep.dependentSystemId}
                     </div>
                     {dep.dependentSystem && (
-                      <div style={{ fontSize: '11px', color: '#666666' }}>
-                        ID: {dep.dependentSystem.id.substring(0, 8)}...
+                      <div style={{ fontSize: '11px', color: 'var(--ed-text-muted)' }}>
+                        ID: #{dep.dependentSystem.id.substring(0, 8)}
                       </div>
                     )}
                   </td>
-                  <td style={{ textAlign: 'center' }}>
-                    <span style={{ fontFamily: 'var(--cc-font-mono)', color: '#888888', fontSize: '11px' }}>
-                      ── relies upon ──▶
-                    </span>
+                  <td style={{ textAlign: 'center', color: dep.dependencyType === DependencyType.Mandatory ? 'var(--ed-amber)' : 'var(--ed-teal-text)', fontFamily: 'var(--ed-font-mono)' }}>
+                    ──▶
                   </td>
                   <td>
                     <div style={{ fontWeight: 700 }}>
                       {dep.dependencySystem?.name || dep.dependencySystemId}
                     </div>
                     {dep.dependencySystem && (
-                      <div style={{ fontSize: '11px', color: '#666666' }}>
-                        ID: {dep.dependencySystem.id.substring(0, 8)}...
+                      <div style={{ fontSize: '11px', color: 'var(--ed-text-muted)' }}>
+                        ID: #{dep.dependencySystem.id.substring(0, 8)}
                       </div>
                     )}
                   </td>
                   <td>
                     <StatusBadge type="dependencyType" value={dep.dependencyType} />
                   </td>
-                  <td style={{ fontFamily: 'var(--cc-font-mono)', fontSize: '11px', color: '#888888' }}>
+                  <td style={{ fontFamily: 'var(--ed-font-mono)', fontSize: '11px', color: 'var(--ed-text-muted)' }}>
                     {new Date(dep.createdAt).toLocaleDateString()}
                   </td>
                   <td style={{ textAlign: 'right' }}>
                     <div style={{ display: 'inline-flex', gap: '6px' }}>
                       <button
                         type="button"
-                        className="cc-button cc-button-sm"
+                        className="ed-button ed-button-sm ed-button-secondary"
                         onClick={() => onNavigate('ImpactAnalysis', dep.dependencySystemId)}
-                        title="Analyze blast radius if provider fails"
+                        title="Simulate blast radius"
                       >
-                        SIMULATE →
+                        [ BLAST RADIUS → ]
                       </button>
                       <button
                         type="button"
-                        className="cc-button cc-button-sm"
+                        className="ed-button ed-button-sm"
                         onClick={() => handleOpenEdit(dep)}
                       >
-                        EDIT
+                        [ EDIT ]
                       </button>
                       <button
                         type="button"
-                        className="cc-button cc-button-sm cc-button-danger"
+                        className="ed-button ed-button-sm ed-button-danger"
                         onClick={() => setDeletingId(dep.id)}
                       >
-                        DELETE
+                        [ DELETE ]
                       </button>
                     </div>
                   </td>
@@ -352,110 +675,29 @@ export default function DependenciesPage({ onNavigate }: DependenciesPageProps) 
             </tbody>
           </table>
         </div>
-      ) : (
-        /* VISUAL CARD FLOW VIEW */
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))', gap: '16px' }}>
-          {filteredDependencies.map((dep) => (
-            <div
-              key={dep.id}
-              style={{
-                backgroundColor: 'var(--cc-bg-surface)',
-                border: '1px solid var(--cc-border)',
-                padding: '16px',
-                display: 'flex',
-                flexDirection: 'column',
-                gap: '12px',
-              }}
-            >
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span className="cc-brand-badge" style={{ fontSize: '10px' }}>
-                  EDGE // {dep.id.substring(0, 8)}
-                </span>
-                <StatusBadge type="dependencyType" value={dep.dependencyType} />
-              </div>
-
-              {/* Edge Visual Connector */}
-              <div
-                style={{
-                  backgroundColor: 'var(--cc-bg-secondary)',
-                  border: '1px solid var(--cc-border)',
-                  padding: '12px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                }}
-              >
-                <div>
-                  <div style={{ fontSize: '10px', color: '#888888', fontFamily: 'var(--cc-font-mono)' }}>
-                    PROVIDER (SRC)
-                  </div>
-                  <div style={{ fontWeight: 700, fontSize: '13px' }}>
-                    {dep.dependencySystem?.name || dep.dependencySystemId}
-                  </div>
-                </div>
-
-                <span style={{ fontFamily: 'var(--cc-font-mono)', fontSize: '14px', color: 'var(--cc-cyan)' }}>
-                  ──▶
-                </span>
-
-                <div style={{ textAlign: 'right' }}>
-                  <div style={{ fontSize: '10px', color: '#888888', fontFamily: 'var(--cc-font-mono)' }}>
-                    DEPENDENT (DST)
-                  </div>
-                  <div style={{ fontWeight: 700, fontSize: '13px' }}>
-                    {dep.dependentSystem?.name || dep.dependentSystemId}
-                  </div>
-                </div>
-              </div>
-
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 'auto' }}>
-                <span style={{ fontSize: '11px', color: '#666666', fontFamily: 'var(--cc-font-mono)' }}>
-                  TYPE: {dep.dependencyType === DependencyType.Mandatory ? 'STRICT PREREQUISITE' : 'FAILOVER PERMITTED'}
-                </span>
-
-                <div style={{ display: 'flex', gap: '6px' }}>
-                  <button
-                    type="button"
-                    className="cc-button cc-button-sm"
-                    onClick={() => handleOpenEdit(dep)}
-                  >
-                    EDIT
-                  </button>
-                  <button
-                    type="button"
-                    className="cc-button cc-button-sm cc-button-danger"
-                    onClick={() => setDeletingId(dep.id)}
-                  >
-                    DELETE
-                  </button>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
       )}
 
-      {/* Add Dependency Modal */}
+      {/* Map Dependency Modal */}
       <Modal
         isOpen={isAddOpen}
-        title="MAP SYSTEM DEPENDENCY"
+        title="MAP DEPENDENCY RELATIONSHIP"
         onClose={() => setIsAddOpen(false)}
         footer={
           <>
             <button
               type="button"
-              className="cc-button"
+              className="ed-button"
               onClick={() => setIsAddOpen(false)}
             >
-              CANCEL
+              [ CANCEL ]
             </button>
             <button
               type="button"
-              className="cc-button cc-button-primary"
+              className="ed-button ed-button-primary"
               disabled={submitting}
               onClick={handleAddSubmit}
             >
-              {submitting ? 'CONNECTING...' : 'ESTABLISH DEPENDENCY'}
+              {submitting ? 'COMMITTING...' : '[ MAP DEPENDENCY EDGE ]'}
             </button>
           </>
         }
@@ -464,77 +706,77 @@ export default function DependenciesPage({ onNavigate }: DependenciesPageProps) 
           {formError && <div className="cc-form-error">[VALIDATION ERROR] {formError}</div>}
 
           <div className="cc-form-group">
-            <label className="cc-form-label">DEPENDENT SYSTEM (The system that requires support) *</label>
+            <label className="cc-form-label">DOWNSTREAM RELIANT SYSTEM *</label>
             <select
-              className="cc-select"
-              required
+              className="ed-select"
               value={formData.dependentSystemId}
               onChange={(e) => setFormData({ ...formData, dependentSystemId: e.target.value })}
+              required
             >
-              <option value="">-- SELECT DEPENDENT SYSTEM --</option>
-              {activeSystems.map((s) => (
-                <option key={s.id} value={s.id}>
-                  {s.name} ({s.environment === 3 ? 'PROD' : 'NON-PROD'})
+              <option value="">-- SELECT RELIANT SYSTEM --</option>
+              {activeSystems.map((sys) => (
+                <option key={sys.id} value={sys.id}>
+                  {sys.name} ({systemTypeLabels[sys.systemType]?.split(' ')[0]})
                 </option>
               ))}
             </select>
           </div>
 
           <div className="cc-form-group">
-            <label className="cc-form-label">DEPENDENCY / PROVIDER SYSTEM (The prerequisite system) *</label>
+            <label className="cc-form-label">UPSTREAM PROVIDER SYSTEM (DEPENDENCY) *</label>
             <select
-              className="cc-select"
-              required
+              className="ed-select"
               value={formData.dependencySystemId}
               onChange={(e) => setFormData({ ...formData, dependencySystemId: e.target.value })}
+              required
             >
               <option value="">-- SELECT PROVIDER SYSTEM --</option>
-              {activeSystems.map((s) => (
-                <option key={s.id} value={s.id}>
-                  {s.name} ({s.environment === 3 ? 'PROD' : 'NON-PROD'})
+              {activeSystems.map((sys) => (
+                <option key={sys.id} value={sys.id}>
+                  {sys.name} ({systemTypeLabels[sys.systemType]?.split(' ')[0]})
                 </option>
               ))}
             </select>
-            <span className="cc-form-hint">
-              Traversal direction: If Provider fails, Dependent will be marked downstream affected.
-            </span>
           </div>
 
           <div className="cc-form-group">
-            <label className="cc-form-label">DEPENDENCY TYPE CLASSIFICATION *</label>
+            <label className="cc-form-label">CLASSIFICATION TYPE *</label>
             <select
-              className="cc-select"
+              className="ed-select"
               value={formData.dependencyType}
               onChange={(e) => setFormData({ ...formData, dependencyType: Number(e.target.value) as DependencyType })}
             >
-              <option value={DependencyType.Mandatory}>Mandatory (Strict Outage Cascade)</option>
-              <option value={DependencyType.Optional}>Optional (Graceful Degradation / Fallback Available)</option>
+              <option value={DependencyType.Mandatory}>MANDATORY (STRICT PREREQUISITE)</option>
+              <option value={DependencyType.Optional}>OPTIONAL (FAILOVER PERMITTED)</option>
             </select>
+            <span className="cc-form-hint">
+              Mandatory dependencies cause cascading failures if the provider goes offline.
+            </span>
           </div>
         </form>
       </Modal>
 
       {/* Edit Dependency Modal */}
       <Modal
-        isOpen={editingDep !== null}
+        isOpen={Boolean(editingDep)}
         title="MODIFY DEPENDENCY CLASSIFICATION"
         onClose={() => setEditingDep(null)}
         footer={
           <>
             <button
               type="button"
-              className="cc-button"
+              className="ed-button"
               onClick={() => setEditingDep(null)}
             >
-              CANCEL
+              [ CANCEL ]
             </button>
             <button
               type="button"
-              className="cc-button cc-button-primary"
+              className="ed-button ed-button-primary"
               disabled={submitting}
               onClick={handleEditSubmit}
             >
-              {submitting ? 'UPDATING...' : 'SAVE CHANGES'}
+              {submitting ? 'SAVING...' : '[ SAVE CLASSIFICATION ]'}
             </button>
           </>
         }
@@ -542,24 +784,20 @@ export default function DependenciesPage({ onNavigate }: DependenciesPageProps) 
         <form onSubmit={handleEditSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
           {formError && <div className="cc-form-error">[VALIDATION ERROR] {formError}</div>}
 
-          <div className="cc-form-group">
-            <span className="cc-form-label">RELATIONSHIP PAIR:</span>
-            <div style={{ fontFamily: 'var(--cc-font-mono)', fontSize: '12px', padding: '8px', background: '#111111' }}>
-              <strong>{editingDep?.dependencySystem?.name || editingDep?.dependencySystemId}</strong>
-              <span style={{ color: 'var(--cc-cyan)', margin: '0 8px' }}>──▶</span>
-              <strong>{editingDep?.dependentSystem?.name || editingDep?.dependentSystemId}</strong>
-            </div>
+          <div style={{ fontFamily: 'var(--ed-font-mono)', fontSize: '11px', color: 'var(--ed-text-secondary)', lineHeight: 1.6 }}>
+            <div>RELIANT: <strong>{editingDep?.dependentSystem?.name}</strong></div>
+            <div>PROVIDER: <strong>{editingDep?.dependencySystem?.name}</strong></div>
           </div>
 
           <div className="cc-form-group">
-            <label className="cc-form-label">DEPENDENCY TYPE *</label>
+            <label className="cc-form-label">CLASSIFICATION TYPE *</label>
             <select
-              className="cc-select"
+              className="ed-select"
               value={formData.dependencyType}
               onChange={(e) => setFormData({ ...formData, dependencyType: Number(e.target.value) as DependencyType })}
             >
-              <option value={DependencyType.Mandatory}>Mandatory (Cascading)</option>
-              <option value={DependencyType.Optional}>Optional (Non-Cascading)</option>
+              <option value={DependencyType.Mandatory}>MANDATORY (STRICT PREREQUISITE)</option>
+              <option value={DependencyType.Optional}>OPTIONAL (FAILOVER PERMITTED)</option>
             </select>
           </div>
         </form>
@@ -567,33 +805,31 @@ export default function DependenciesPage({ onNavigate }: DependenciesPageProps) 
 
       {/* Delete Confirmation Modal */}
       <Modal
-        isOpen={deletingId !== null}
-        title="CONFIRM REMOVAL OF DEPENDENCY EDGE"
+        isOpen={Boolean(deletingId)}
+        title="REMOVE DEPENDENCY RELATIONSHIP"
         onClose={() => setDeletingId(null)}
         footer={
           <>
             <button
               type="button"
-              className="cc-button"
+              className="ed-button"
               onClick={() => setDeletingId(null)}
             >
-              CANCEL
+              [ CANCEL ]
             </button>
             <button
               type="button"
-              className="cc-button cc-button-danger"
+              className="ed-button ed-button-danger"
               disabled={submitting}
               onClick={handleDeleteConfirm}
             >
-              {submitting ? 'REMOVING...' : 'DELETE EDGE'}
+              {submitting ? 'REMOVING...' : '[ CONFIRM REMOVAL ]'}
             </button>
           </>
         }
       >
-        <p style={{ margin: 0, fontSize: '13px' }}>
-          Are you sure you want to delete this dependency edge?
-          <br /><br />
-          The Graph Engine will no longer traverse from provider to dependent during blast radius impact analysis.
+        <p style={{ margin: 0, fontSize: '13px', color: 'var(--ed-text-secondary)', lineHeight: 1.6 }}>
+          Are you sure you want to remove this dependency linkage? Both underlying logistics systems will remain preserved in the registry; only the relationship edge will be removed from graph traversal.
         </p>
       </Modal>
     </div>

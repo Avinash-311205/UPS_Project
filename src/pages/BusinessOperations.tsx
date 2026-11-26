@@ -241,139 +241,137 @@ export default function BusinessOperationsPage({ onNavigate: _onNavigate }: Busi
 
   return (
     <div>
-      <div className="cc-page-header">
-        <div className="cc-page-title-group">
-          <h1>04 // BUSINESS OPERATIONS CATALOG</h1>
-          <p>
-            Critical operational workflows, assigned supporting systems, and availability resilience rules (AllRequired vs AnyAvailable).
+      {/* Editorial Page Header */}
+      <div className="ed-section-header">
+        <div>
+          <span className="ed-section-num">04 // PROCESS CATALOG</span>
+          <h1 className="ed-section-title">Business Operations</h1>
+          <p className="ed-section-desc">
+            Operational continuity catalog with availability resilience contracts (AllRequired vs AnyAvailable) and infrastructure dependencies.
           </p>
         </div>
 
         <button
           type="button"
-          className="cc-button cc-button-primary"
+          className="ed-action-link"
+          style={{ fontSize: '11px', letterSpacing: '0.1em' }}
           onClick={handleOpenCreate}
         >
-          + DEFINE BUSINESS OPERATION
+          [ + DEFINE OPERATION ]
         </button>
       </div>
 
       {actionSuccess && (
         <div
           className="cc-badge cc-badge-green"
-          style={{ width: '100%', padding: '10px 14px', marginBottom: '16px', boxSizing: 'border-box' }}
+          style={{ width: '100%', padding: '12px 16px', marginBottom: '20px', boxSizing: 'border-box' }}
         >
-          ✓ {actionSuccess}
+          [SUCCESS] {actionSuccess}
         </div>
       )}
 
       {error && <ErrorBanner message={error} onDismiss={() => setError(null)} />}
 
-      {/* Availability Rule Architecture Callout */}
+      {/* Availability Rule Architectural Manifesto */}
       <div
         style={{
-          backgroundColor: 'var(--cc-bg-surface)',
-          border: '1px solid var(--cc-border)',
-          padding: '14px 18px',
-          marginBottom: '20px',
+          border: '1px solid var(--ed-border)',
+          borderLeft: '2px solid var(--ed-amber)',
+          background: 'var(--ed-surface)',
+          padding: '24px 28px',
+          marginBottom: '32px',
           display: 'grid',
           gridTemplateColumns: '1fr 1fr',
-          gap: '16px',
+          gap: '32px',
         }}
       >
-        <div style={{ borderRight: '1px solid var(--cc-border)', paddingRight: '16px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
+        <div style={{ borderRight: '1px solid var(--ed-border)', paddingRight: '28px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px' }}>
             <span className="cc-badge cc-badge-amber">ALL REQUIRED (STRICT)</span>
-            <span style={{ fontSize: '11px', color: '#888888', fontFamily: 'var(--cc-font-mono)' }}>
-              DEFAULT EVALUATION
+            <span style={{ fontSize: '10px', color: 'var(--ed-text-muted)', fontFamily: 'var(--ed-font-mono)', letterSpacing: '0.08em' }}>
+              STRICT CASCADE
             </span>
           </div>
-          <p style={{ margin: 0, fontSize: '11px', color: '#999999', lineHeight: 1.4 }}>
-            Operation requires <strong>every supporting system</strong> to remain operational. If any supporting system fails, the operation is evaluated as <strong style={{ color: 'var(--cc-red)' }}>Potentially Affected</strong>.
+          <p style={{ margin: 0, fontSize: '12px', color: 'var(--ed-text-secondary)', lineHeight: 1.6 }}>
+            Operation requires <strong style={{ color: 'var(--ed-text)' }}>every supporting system</strong> to remain operational. If any supporting component fails, the process is evaluated as <span style={{ color: 'var(--ed-amber)' }}>Potentially Affected</span>.
           </p>
         </div>
 
         <div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px' }}>
             <span className="cc-badge cc-badge-cyan">ANY AVAILABLE (FAILOVER)</span>
-            <span style={{ fontSize: '11px', color: '#888888', fontFamily: 'var(--cc-font-mono)' }}>
+            <span style={{ fontSize: '10px', color: 'var(--ed-text-muted)', fontFamily: 'var(--ed-font-mono)', letterSpacing: '0.08em' }}>
               HIGH AVAILABILITY REDUNDANCY
             </span>
           </div>
-          <p style={{ margin: 0, fontSize: '11px', color: '#999999', lineHeight: 1.4 }}>
-            Operation can tolerate single system outages if alternative supporting systems remain online. Evaluated as <strong style={{ color: 'var(--cc-amber)' }}>Requires Verification</strong> instead of catastrophic disruption.
+          <p style={{ margin: 0, fontSize: '12px', color: 'var(--ed-text-secondary)', lineHeight: 1.6 }}>
+            Operation tolerates single component outages provided redundant infrastructure paths remain online. Evaluated as <span style={{ color: 'var(--ed-teal-light)' }}>Requires Verification</span> during disruption events.
           </p>
         </div>
       </div>
 
-      {/* Toolbar & Filter */}
-      <div className="cc-toolbar">
-        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center' }}>
-          <div className="cc-search-box">
-            <span style={{ color: '#555555', fontFamily: 'var(--cc-font-mono)' }}>⌕</span>
-            <input
-              type="text"
-              placeholder="SEARCH OPERATIONS..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
-          </div>
+      {/* Editorial Filter Strip */}
+      <div className="ed-filter-strip">
+        <input
+          type="text"
+          className="ed-filter-input"
+          placeholder="SEARCH OPERATIONS..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+        />
 
-          <select
-            className="cc-select"
-            style={{ width: 'auto' }}
-            value={critFilter}
-            onChange={(e) => setCritFilter(e.target.value)}
-          >
-            <option value="all">ALL CRITICALITY</option>
-            {Object.entries(operationCriticalityLabels).map(([key, label]) => (
-              <option key={key} value={key}>
-                {label.toUpperCase()}
-              </option>
-            ))}
-          </select>
+        <select
+          className="ed-filter-select"
+          value={critFilter}
+          onChange={(e) => setCritFilter(e.target.value)}
+        >
+          <option value="all">ALL CRITICALITY</option>
+          {Object.entries(operationCriticalityLabels).map(([key, label]) => (
+            <option key={key} value={key}>
+              {label.toUpperCase()}
+            </option>
+          ))}
+        </select>
 
-          <select
-            className="cc-select"
-            style={{ width: 'auto' }}
-            value={ruleFilter}
-            onChange={(e) => setRuleFilter(e.target.value)}
-          >
-            <option value="all">ALL AVAILABILITY RULES</option>
-            {Object.entries(availabilityRuleLabels).map(([key, label]) => (
-              <option key={key} value={key}>
-                {label.toUpperCase()}
-              </option>
-            ))}
-          </select>
+        <select
+          className="ed-filter-select"
+          value={ruleFilter}
+          onChange={(e) => setRuleFilter(e.target.value)}
+        >
+          <option value="all">ALL AVAILABILITY RULES</option>
+          {Object.entries(availabilityRuleLabels).map(([key, label]) => (
+            <option key={key} value={key}>
+              {label.toUpperCase()}
+            </option>
+          ))}
+        </select>
 
-          <label
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '6px',
-              fontFamily: 'var(--cc-font-mono)',
-              fontSize: '11px',
-              color: '#888888',
-              cursor: 'pointer',
-              userSelect: 'none',
-            }}
-          >
-            <input
-              type="checkbox"
-              checked={includeInactive}
-              onChange={(e) => setIncludeInactive(e.target.checked)}
-            />
-            SHOW INACTIVE
-          </label>
-        </div>
+        <label
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '8px',
+            fontFamily: 'var(--ed-font-mono)',
+            fontSize: '11px',
+            color: 'var(--ed-text-muted)',
+            cursor: 'pointer',
+            userSelect: 'none',
+          }}
+        >
+          <input
+            type="checkbox"
+            checked={includeInactive}
+            onChange={(e) => setIncludeInactive(e.target.checked)}
+          />
+          SHOW INACTIVE
+        </label>
 
-        <div style={{ fontFamily: 'var(--cc-font-mono)', fontSize: '11px', color: '#888888' }}>
-          OPERATIONS: <strong>{filteredOperations.length}</strong> / {operations.length}
+        <div style={{ marginLeft: 'auto', fontFamily: 'var(--ed-font-mono)', fontSize: '11px', color: 'var(--ed-text-muted)' }}>
+          TOTAL: <span style={{ color: 'var(--ed-text)', fontWeight: 700 }}>{filteredOperations.length}</span> / {operations.length}
         </div>
       </div>
 
-      {/* Operations Table */}
+      {/* Operations List */}
       {loading ? (
         <LoadingSpinner label="RETRIEVING BUSINESS OPERATIONS..." />
       ) : filteredOperations.length === 0 ? (
@@ -383,85 +381,97 @@ export default function BusinessOperationsPage({ onNavigate: _onNavigate }: Busi
           action={
             <button
               type="button"
-              className="cc-button cc-button-primary"
+              className="ed-action-link"
               onClick={handleOpenCreate}
             >
-              + DEFINE FIRST OPERATION
+              [ + DEFINE FIRST OPERATION ]
             </button>
           }
         />
       ) : (
-        <div className="cc-table-container">
-          <table className="cc-table">
-            <thead>
-              <tr>
-                <th>OPERATION NAME</th>
-                <th>CRITICALITY</th>
-                <th>AVAILABILITY RULE</th>
-                <th>SUPPORTING SYSTEMS</th>
-                <th>STATUS</th>
-                <th style={{ textAlign: 'right' }}>ACTIONS</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredOperations.map((op) => (
-                <tr key={op.id}>
-                  <td>
-                    <div style={{ fontWeight: 700 }}>{op.name}</div>
-                    {op.description && (
-                      <div style={{ fontSize: '11px', color: '#666666' }}>{op.description}</div>
-                    )}
-                  </td>
-                  <td>
-                    <StatusBadge type="operationCriticality" value={op.criticality} />
-                  </td>
-                  <td>
-                    <StatusBadge type="availabilityRule" value={op.availabilityRule} />
-                  </td>
-                  <td>
+        <div style={{ borderTop: '1px solid var(--ed-border)', marginBottom: '48px' }}>
+          {filteredOperations.map((op, idx) => {
+            const indexStr = String(idx + 1).padStart(3, '0')
+            return (
+              <div
+                key={op.id}
+                className="ed-system-row"
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: '60px 2fr 1fr 1fr 140px 100px 180px',
+                  alignItems: 'center',
+                  gap: '16px',
+                  padding: '16px 8px',
+                  borderBottom: '1px solid var(--ed-border)',
+                }}
+              >
+                {/* Index */}
+                <div className="ed-system-index">{indexStr}</div>
+
+                {/* Operation Title & Description */}
+                <div>
+                  <div style={{ fontFamily: 'var(--ed-font-heading)', fontWeight: 600, fontSize: '15px', color: 'var(--ed-text)', letterSpacing: '0.02em' }}>
+                    {op.name}
+                  </div>
+                  {op.description && (
+                    <div style={{ fontSize: '12px', color: 'var(--ed-text-muted)', marginTop: '2px', lineHeight: 1.4 }}>
+                      {op.description}
+                    </div>
+                  )}
+                </div>
+
+                {/* Criticality */}
+                <div>
+                  <StatusBadge type="operationCriticality" value={op.criticality} />
+                </div>
+
+                {/* Availability Rule */}
+                <div>
+                  <StatusBadge type="availabilityRule" value={op.availabilityRule} />
+                </div>
+
+                {/* Supporting Systems */}
+                <div>
+                  <button
+                    type="button"
+                    className="ed-action-link"
+                    style={{ fontSize: '11px' }}
+                    onClick={() => handleOpenManageSystems(op)}
+                    title="Manage supporting infrastructure"
+                  >
+                    [{op.supportingSystemsCount} SYSTEMS]
+                  </button>
+                </div>
+
+                {/* Status */}
+                <div>
+                  <StatusBadge type="operationStatus" value={op.lifecycleStatus} />
+                </div>
+
+                {/* Actions */}
+                <div style={{ textAlign: 'right', display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
+                  <button
+                    type="button"
+                    className="ed-action-link"
+                    style={{ fontSize: '11px' }}
+                    onClick={() => handleOpenEdit(op)}
+                  >
+                    [EDIT]
+                  </button>
+                  {op.lifecycleStatus === OperationLifecycleStatus.Active && (
                     <button
                       type="button"
-                      className="cc-button cc-button-sm"
-                      onClick={() => handleOpenManageSystems(op)}
-                      title="Manage supporting infrastructure"
+                      className="ed-action-link"
+                      style={{ fontSize: '11px', color: 'var(--ed-amber)' }}
+                      onClick={() => setDeactivatingId(op.id)}
                     >
-                      {op.supportingSystemsCount} SYSTEMS [⚙]
+                      [DEACTIVATE]
                     </button>
-                  </td>
-                  <td>
-                    <StatusBadge type="operationStatus" value={op.lifecycleStatus} />
-                  </td>
-                  <td style={{ textAlign: 'right' }}>
-                    <div style={{ display: 'inline-flex', gap: '6px' }}>
-                      <button
-                        type="button"
-                        className="cc-button cc-button-sm"
-                        onClick={() => handleOpenManageSystems(op)}
-                      >
-                        ASSIGN SYSTEMS
-                      </button>
-                      <button
-                        type="button"
-                        className="cc-button cc-button-sm"
-                        onClick={() => handleOpenEdit(op)}
-                      >
-                        EDIT
-                      </button>
-                      {op.lifecycleStatus === OperationLifecycleStatus.Active && (
-                        <button
-                          type="button"
-                          className="cc-button cc-button-sm cc-button-danger"
-                          onClick={() => setDeactivatingId(op.id)}
-                        >
-                          DEACTIVATE
-                        </button>
-                      )}
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+                  )}
+                </div>
+              </div>
+            )
+          })}
         </div>
       )}
 
@@ -477,7 +487,7 @@ export default function BusinessOperationsPage({ onNavigate: _onNavigate }: Busi
               className="cc-button"
               onClick={() => setIsCreateOpen(false)}
             >
-              CANCEL
+              [ CANCEL ]
             </button>
             <button
               type="button"
@@ -485,7 +495,7 @@ export default function BusinessOperationsPage({ onNavigate: _onNavigate }: Busi
               disabled={submitting}
               onClick={handleCreateSubmit}
             >
-              {submitting ? 'SAVING...' : 'CREATE OPERATION'}
+              {submitting ? 'SAVING...' : '[ CREATE OPERATION ]'}
             </button>
           </>
         }
@@ -552,7 +562,7 @@ export default function BusinessOperationsPage({ onNavigate: _onNavigate }: Busi
       {/* Edit Operation Modal */}
       <Modal
         isOpen={editingOp !== null}
-        title={`EDIT OPERATION // ${editingOp?.name || ''}`}
+        title={`EDIT OPERATION: ${editingOp?.name || ''}`}
         onClose={() => setEditingOp(null)}
         footer={
           <>
@@ -561,7 +571,7 @@ export default function BusinessOperationsPage({ onNavigate: _onNavigate }: Busi
               className="cc-button"
               onClick={() => setEditingOp(null)}
             >
-              CANCEL
+              [ CANCEL ]
             </button>
             <button
               type="button"
@@ -569,7 +579,7 @@ export default function BusinessOperationsPage({ onNavigate: _onNavigate }: Busi
               disabled={submitting}
               onClick={handleEditSubmit}
             >
-              {submitting ? 'SAVING...' : 'COMMIT CHANGES'}
+              {submitting ? 'SAVING...' : '[ COMMIT CHANGES ]'}
             </button>
           </>
         }
@@ -634,7 +644,7 @@ export default function BusinessOperationsPage({ onNavigate: _onNavigate }: Busi
       {/* Manage Supporting Systems Modal */}
       <Modal
         isOpen={managingOp !== null}
-        title={`SUPPORTING SYSTEMS // ${managingOp?.name || ''}`}
+        title={`SUPPORTING SYSTEMS: ${managingOp?.name || ''}`}
         onClose={() => setManagingOp(null)}
         footer={
           <button
@@ -642,7 +652,7 @@ export default function BusinessOperationsPage({ onNavigate: _onNavigate }: Busi
             className="cc-button cc-button-primary"
             onClick={() => setManagingOp(null)}
           >
-            DONE
+            [ DONE ]
           </button>
         }
       >
@@ -685,7 +695,7 @@ export default function BusinessOperationsPage({ onNavigate: _onNavigate }: Busi
                       disabled={submitting}
                       onClick={() => handleRemoveAssignedSystem(item.logisticsSystemId)}
                     >
-                      REMOVE
+                      [ UNASSIGN ]
                     </button>
                   </div>
                 ))}
@@ -721,7 +731,7 @@ export default function BusinessOperationsPage({ onNavigate: _onNavigate }: Busi
                   disabled={!selectedSystemToAssign || submitting}
                   onClick={handleAssignSystemSubmit}
                 >
-                  ASSIGN
+                  [ ASSIGN ]
                 </button>
               </div>
             )}
@@ -741,7 +751,7 @@ export default function BusinessOperationsPage({ onNavigate: _onNavigate }: Busi
               className="cc-button"
               onClick={() => setDeactivatingId(null)}
             >
-              CANCEL
+              [ CANCEL ]
             </button>
             <button
               type="button"
@@ -749,7 +759,7 @@ export default function BusinessOperationsPage({ onNavigate: _onNavigate }: Busi
               disabled={submitting}
               onClick={handleDeactivateConfirm}
             >
-              {submitting ? 'DEACTIVATING...' : 'DEACTIVATE OPERATION'}
+              {submitting ? 'DEACTIVATING...' : '[ DEACTIVATE OPERATION ]'}
             </button>
           </>
         }

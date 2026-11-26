@@ -15,7 +15,7 @@ export default function Modal({ isOpen, title, onClose, children, footer }: Moda
     <div className="cc-modal-overlay" onClick={onClose}>
       <div className="cc-modal" onClick={(e) => e.stopPropagation()}>
         <div className="cc-modal-header">
-          <h2 className="cc-modal-title">// {title}</h2>
+          <h2 className="cc-modal-title">{title}</h2>
           <button
             type="button"
             className="cc-button cc-button-sm"
